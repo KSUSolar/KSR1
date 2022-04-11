@@ -6,7 +6,6 @@ from PyQt5.QtGui import *
 from gui_variables import *
 from parsed_can_message import *
 from data_parser import *
-from log_data import *
 import time
 from datetime import datetime
 import os
@@ -38,10 +37,6 @@ class MyMainWindow(QMainWindow):
         self.showFullScreen()
         self.show()
         
-        # log data
-        logData()
-        
-        
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Escape and self.isFullScreen():
             self.showNormal()
@@ -70,6 +65,7 @@ class MainGrid(QWidget):
         self.amps = amps
         self.volts = volts
         self.mph_num = mph_num
+        
         self.initGrid()
 
     def initGrid(self):
@@ -262,19 +258,28 @@ class MainGrid(QWidget):
         now = datetime.now()
         
         # concatenate information for logData() to create new file
-        save_path = '/Solar Racer/Logged_Data'
+        save_path = '/home/pi/Desktop/KSR1/Logged_Data'
         file_name = now.strftime("%Y") + "-" + now.strftime("%m") + "-" + now.strftime("%d") + ".txt"
-        completeFileName = os.path.join(save_path, file_name)
+        self.completeFileName = os.path.join(save_path, file_name)
+        
         
         # open / create new readable / writeable txt file (called name concatenated above)
-        fh = open(completeFileName, 'w+')
+        self.fh = open(self.completeFileName, 'w+')
+        
+        # get current time and date
+        starttime = time.time()
+        now = datetime.now()
+        # write data in txt file
+        #self.fh.write(now.strftime("%H:%M:%S") + " -- \n" )
+        self.fh.write("battery_percentage \t KW_usage \t mph \t temperature \t amps \t volts")# log remainder of data following h:m:s --
+        self.fh.close()
         
         # make DataTimer
         self.dataTimer = QTimer(self)
         # set interval to 10 m
-        self.dataTimer.setInterval(600000) # 1000 ms = 1 s
+        self.dataTimer.setInterval(60) # 1000 ms = 1 s
         # connect timeout signal to signal handler
-        self.dataTimer.timeout.connect(self.logData(fh))
+        self.dataTimer.timeout.connect(self.logData)
         # start data timer
         self.dataTimer.start()
         
@@ -295,13 +300,16 @@ class MainGrid(QWidget):
         self.KW.setText('%d KW' %self.KW_usage)
         self.batteryPercentage.setText('%d' %self.KW_usage)
         
-    def logData(self, file_handler):
-        fh = file_handler
-        # get current time and date
-        starttime = time.time()
-        now = datetime.now()
-        # write data in txt file
-        fh.write(now.strftime("%H:%M:%S") + " -- " ) # log remainder of data following h:m:s --  def log_data(self):
+    def logData(self):
+        try:
+            with open(self.completeFileName, 'a') as fh:
+                fh.write("\nHere")
+                #fh.write("\n" + self.battery_percentage + "\t" + self.KW_usage + "\t" + self.mph + "\t" + self.temperature + "\t" + self.amps + "\t" + self.volts)
+        except:
+            raise Exception("Cannot open file")
+        
+        finally:
+            fh.close()
         
 
 if __name__ == '__main__':

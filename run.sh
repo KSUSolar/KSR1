@@ -1,2 +1,4 @@
-export DISPLAY=':0.0'
-python3 main2.py
+#!/bin/sh
+
+python /home/pi/Desktop/KSR1/main.py
+exit 0
