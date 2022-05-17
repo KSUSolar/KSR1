@@ -1,9 +1,8 @@
-# KSR1
+# KSR1 #
 Data Logging, Dashboard, and Wireless Communication for the KSR 
 
-
-# Just in case you need to setup the canBus hat again or the autostart
 # Autostart #
+Just in case you need to setup the canBus hat again or the autostart
 The autostart .desktop file is located here:
 /etc/xdg/autostart/display.desktop
 with this in the file:
