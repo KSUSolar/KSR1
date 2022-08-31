@@ -15,6 +15,7 @@ class MyMainWindow(QMainWindow):
         global mph_num
         global leftLight
         global rightLight
+        global data_file
 
         super().__init__()
         self.beans = [0, 1, 2, 3, 4, 5, 6, 0]
@@ -191,9 +192,8 @@ class MyMainWindow(QMainWindow):
         elif event.key() == Qt.Key_Escape and (not self.isFullScreen()):
             self.showFullScreen()
             event.accept()
-        # elif (event.key() == Qt.Key_Q): # This is supposed to be able to kill the canBus & blinker threads but it just freezes the program.  I'm confused.
-            # canThread.join()
-            # lightT.join()
+        elif (event.key() == Qt.Key_Q): # This is supposed to be able to kill the canBus & blinker threads but it just freezes the program.  I'm confused.
+            self.close()
             
     def getSensorValue(self):
         # beans = recieve_message()
@@ -208,6 +208,7 @@ class MyMainWindow(QMainWindow):
         self.volts += 3 # = beans[1]
         #mph_num += 1 # = beans[0]
         self.auxV += 1 # = beans[4]
+        self.CPUTemp = str(CPUTemperature().temperature)
 
         self.SOC.setText('SOC: %d' %self.state_of_charge)
         #self.mphDisp.setText(str(mph_num))
@@ -215,8 +216,11 @@ class MyMainWindow(QMainWindow):
         self.sinLabel.setText('Main: ' + str(self.amps) + ' A')
         self.eleLabel.setText('Main: ' + str(self.volts) + ' V')
         self.auxLabel.setText('Aux: ' + str(self.auxV) + ' V')
-        self.piTemp.setText('Pi: ' + str(CPUTemperature().temperature) + ' °C')
+        self.piTemp.setText('Pi: ' + self.CPUTemp + ' °C')
         self.arrayTemp.setText('Array: ' + str(self.arTemp) + ' °C')
+        
+        # Log data to timestamped .csv
+        data_file.write(f'{self.state_of_charge}, {self.amps}, {self.volts}, {self.auxV}, {self.CPUTemp}, {self.arTemp}\n')
         
         if (self.beans[7] == 0):
             self.FLabel.setStyleSheet('color: red; font-size:80px; font-family:tahoma;')
@@ -254,10 +258,12 @@ class canBusThread(threading.Thread):
 
     def run(self):
         global mph_num
+        global alive
 
-        while (True):
+        while (alive):
             mph_num += 1
             time.sleep(0.4)
+        print("canBus: Shutting Down")
 
 class lightThread(threading.Thread):
     def __init__(self):
@@ -266,6 +272,7 @@ class lightThread(threading.Thread):
     def run(self):
         global leftLight
         global rightLight
+        global alive
         
         rightPin = 5
         leftPin = 6
@@ -286,7 +293,7 @@ class lightThread(threading.Thread):
         GPIO.setup(hazardIn, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
         print("GPIO input setup")
 
-        while (True):
+        while (alive):
             if (GPIO.input(hazardIn) == 1):
                 GPIO.output(rightPin, GPIO.HIGH)
                 GPIO.output(leftPin, GPIO.HIGH)
@@ -314,11 +321,13 @@ class lightThread(threading.Thread):
                         GPIO.output(leftPin, GPIO.LOW)
                         leftLight = False
                         time.sleep(0.5)
+        print("Lights: Shutting Down")
 
 if __name__ == '__main__':
     mph_num = 1
     leftLight = False
     rightLight = False
+    alive = True
     
     os.system('sudo ip link set can0 type can bitrate 250000') # This sets up the canBus interface
     os.system('sudo ifconfig can0 up') # This starts said canBus interface
@@ -328,7 +337,19 @@ if __name__ == '__main__':
     
     lightT = lightThread()
     lightT.start()
+    
+    data_file = open (os.path.join(os.path.expanduser('~'), 'Desktop', "proofOfConcept", "Logged_Data", (time.strftime("%Y_%m_%d-%H_%m_%S") + ".csv")), "a")
+    data_file.write(f'SOC, Main Amps, Main Volts, Aux Volts, Pi Temp, Array Temp\n')
 
     app = QApplication(sys.argv)
     ex = MyMainWindow()
-    sys.exit(app.exec_())
+    app.exec_()
+    
+    # This is as global variable that kills the canThread & lightThread
+    alive = False
+    canThread.join()
+    lightT.join()
+    print("Closed the threads")
+    
+    # Closing the file so all the data is written.
+    data_file.close()

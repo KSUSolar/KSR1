@@ -6,7 +6,7 @@ import adafruit_rfm9x
 def transmitString(tString):
     CS = digitalio.DigitalInOut(board.D2)
     RESET = digitalio.DigitalInOut(board.D26)
-    spi = busio.SPI(board.D21, MOSI=board.D20, MISO=board.D19)
+    spi = busio.SPI(clock=board.D21, MOSI=board.D20, MISO=board.D19)
     rfm9x = adafruit_rfm9x.RFM9x(spi, CS, RESET, 915.0) # 10mhz is the standard baudrate (baudrate=1000000
 
     # Should be as simple as using this command to send
