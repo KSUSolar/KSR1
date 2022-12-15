@@ -219,8 +219,8 @@ class GUI(QMainWindow):
         self._update_battcharge(self._canbus.batt_charge_perc)
         self._update_battstats(
             self._canbus.batt_volts,
-            self.batt_amps,
-            self.aux_volts
+            self._canbus.batt_amps,
+            self._canbus.aux_volts
             )
         self._update_mph(self._canbus.mph)
         self._update_temps(self._canbus.batt_temp,
