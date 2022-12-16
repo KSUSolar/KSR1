@@ -15,7 +15,7 @@ class GUI(QMainWindow):
         gearbox_box = QGroupBox()
         
         self._fgear_display = QLabel('F')
-        self._fgear_display.set_style_sheet(
+        self._fgear_display.setStyleSheet(
             'color: white;'
             'font-family: tahoma, geneva, sans-serif;'
             'font-size: 80px;'
@@ -23,14 +23,14 @@ class GUI(QMainWindow):
         self._fgear_display.setAlignment(Qt.AlignCenter)
         
         self._ngear_display = QLabel('N')
-        self._ngear_display.set_style_sheet(
+        self._ngear_display.setStyleSheet(
             'color: white;'
             'font-family: tahoma, geneva, sans-serif;'
             'font-size: 80px;')
         self._ngear_display.setAlignment(Qt.AlignCenter)
 
         self._rgear_display = QLabel('R')
-        self._rgear_display.set_style_sheet(
+        self._rgear_display.setStyleSheet(
             'color: white;'
             'font-family: tahoma, geneva, sans-serif;'
             'font-size: 80px;'
@@ -41,24 +41,25 @@ class GUI(QMainWindow):
         gearbox_layout.addWidget(self._fgear_display, 0, 0)
         gearbox_layout.addWidget(self._ngear_display, 0, 1)
         gearbox_layout.addWidget(self._rgear_display, 0, 2)
-        gearbox_box.set_layout(gearbox_layout)
+        gearbox_box.setLayout(gearbox_layout)
 
 
         # Sets left blinker icon.
         self._l_blinker = QLabel('⬅')  # ◄ or ← or ⬅ #.  Boy do I love ASCII.
-        self._l_blinker.set_style_sheet('color: green; font-size: 90px')
+        self._l_blinker.setStyleSheet('color: green; font-size: 90px')
         self._l_blinker.setAlignment(Qt.AlignCenter)
 
 
         # Sets right blinker icon.
         self._r_blinker = QLabel('➡')
-        self._r_blinker.set_style_sheet('color: green; font-size: 90px')
+        self._r_blinker.setStyleSheet('color: green; font-size: 90px')
         self._r_blinker.setAlignment(Qt.AlignCenter)
 
 
         # Creates the batt charge display.
-        self._battcharge = QLabel('SOC: ' + CanBus.DEF_BATT_CHARGE + '%')
-        self._battcharge.set_style_sheet(
+        self._battcharge = QLabel(
+            'SOC: ' + str(CanBus.DEF_BATT_CHARGE_PERC) + '%')
+        self._battcharge.setStyleSheet(
             'background-color: transparent;'
             'color: white;'
             'font-family: tahoma, geneva,sans-serif;'
@@ -72,24 +73,24 @@ class GUI(QMainWindow):
         battstats_box = QGroupBox()
 
         self._batt_volts_display = QLabel(
-            'Batt Voltage: ' + CanBus.DEF_BATT_VOLTS + 'V')
-        self._batt_volts_display.set_style_sheet(
+            'Batt Voltage: ' + str(CanBus.DEF_BATT_VOLTS) + 'V')
+        self._batt_volts_display.setStyleSheet(
             'color: white;'
             'font-family: tahoma, geneva, sans-serif;'
             'font-size: 20px;'
             )
 
         self._batt_amps_display = QLabel(
-            'Batt Current: ' + CanBus.DEF_BATT_AMPS + 'A')
-        self._batt_amps_display.set_style_sheet(
+            'Batt Current: ' + str(CanBus.DEF_BATT_AMPS) + 'A')
+        self._batt_amps_display.setStyleSheet(
             'color: white;'
             ' font-family: tahoma, geneva, sans-serif;'
             'font-size: 20px;'
             )
 
         self._aux_volts_display = QLabel(
-            'Aux Voltage: ' + CanBus.DEF_AUX_VOLTS + 'V')
-        self._aux_volts_display .set_style_sheet(
+            'Aux Voltage: ' + str(CanBus.DEF_AUX_VOLTS) + 'V')
+        self._aux_volts_display .setStyleSheet(
             'color: white;'
             'font-family: tahoma, geneva, sans-serif;'
             'font-size: 20px;'
@@ -99,22 +100,22 @@ class GUI(QMainWindow):
         battstats_layout.addWidget(self._batt_volts_display , 0, 0)
         battstats_layout.addWidget(self._batt_amps_display, 1, 0)
         battstats_layout.addWidget(self._aux_volts_display, 2, 0)
-        battstats_box.set_layout(battstats_layout)
+        battstats_box.setLayout(battstats_layout)
 
 
         # Creates the MPH display.
         mph_box = QGroupBox()
         
         mph_label = QLabel('MPH')
-        mph_label.set_style_sheet(
+        mph_label.setStyleSheet(
             'color: #808080;'
             'font-family: verdana, geneva, sans-serif;'
             'font-size: 40px;'
             )
         mph_label.setAlignment(Qt.AlignHCenter)
         
-        self._mph_display = QLabel(CanBus.DEF_MPH)
-        self._mph_display.set_style_sheet(
+        self._mph_display = QLabel(str(CanBus.DEF_MPH))
+        self._mph_display.setStyleSheet(
             'color: #FFFFFF;'
             'font-family: tahoma, geneva, sans-serif;'
             'font-size: 40px;'
@@ -125,31 +126,31 @@ class GUI(QMainWindow):
         mph_layout = QVBoxLayout()
         mph_layout.addWidget(mph_label)
         mph_layout.addWidget(self._mph_display)
-        mph_box.set_layout(mph_layout)
+        mph_box.setLayout(mph_layout)
 
 
         # Creates the hardware temps display.
         temps_box = QGroupBox()
 
         self._batt_temp_display = QLabel(
-            'batt: ' + CanBus.DEF_BATT_TEMP + '°C')
-        self._batt_temp_display.set_style_sheet(
+            'batt: ' + str(CanBus.DEF_BATT_TEMP) + '°C')
+        self._batt_temp_display.setStyleSheet(
             'color: white;'
             'font-family: tahoma, geneva, sans-serif;'
             'font-size: 20px;'
             )
         
         self._solar_temp_display = QLabel(
-            'Solar Array: ' + CanBus.DEF_SOLAR_TEMP + '°C')
-        self._solar_temp_display.set_style_sheet(
+            'Solar Array: ' + str(CanBus.DEF_SOLAR_TEMP) + '°C')
+        self._solar_temp_display.setStyleSheet(
             'color: white;'
             'font-family: tahoma, geneva, sans-serif;'
             'font-size: 20px;'
             )
 
         self._pi_temp_display = QLabel(
-            'Pi: ' + CanBus.DEF_PI_TEMP + '°C')
-        self._pi_temp_display.set_style_sheet(
+            'Pi: ' + str(CanBus.DEF_PI_TEMP) + '°C')
+        self._pi_temp_display.setStyleSheet(
             'color: white;'
             'font-family: tahoma, geneva, sans-serif;'
             'font-size: 20px;'
@@ -159,12 +160,12 @@ class GUI(QMainWindow):
         temps_layout.addWidget(self._batt_temp_display, 0, 0)
         temps_layout.addWidget(self._solar_temp_display, 1, 0)
         temps_layout.addWidget(self._pi_temp_display, 2, 0)
-        temps_box.set_layout(temps_layout)
+        temps_box.setLayout(temps_layout)
 
 
         # Creates the BPS Fault warning display.
         self._bpsfault_warning = QLabel('BPS Fault')
-        self._bpsfault_warning.set_style_sheet(
+        self._bpsfault_warning.setStyleSheet(
             'background-color: transparent;'
             'font-size: 25px;'
             )
@@ -172,32 +173,29 @@ class GUI(QMainWindow):
 
 
         # Creates the main GUI layout.
-        self._gui_layout = QGridLayout()
+        gui_layout = QGridLayout()
 
         # Places all the widgets onto the gui layout.
         # column, row, rowspan,columnspan.
-        self._gui_layout.addWidget(self._l_blinker, 0, 0)
-        self._gui_layout.addWidget(gearbox_box, 0, 1)
-        self._gui_layout.addWidget(self._r_blinker, 0, 2)
-        self._gui_layout.addWidget(self._battcharge, 1, 0)
-        self._gui_layout.addWidget(battstats_box, 1, 0)
-        self._gui_layout.addWidget(mph_box, 1, 1)
-        self._gui_layout.addWidget(temps_box, 1, 2)
-        self._gui_layout.addWidget(self._bpsfault_warning, 2, 1)
+        gui_layout.addWidget(self._l_blinker, 0, 0)
+        gui_layout.addWidget(gearbox_box, 0, 1)
+        gui_layout.addWidget(self._r_blinker, 0, 2)
+        gui_layout.addWidget(self._battcharge, 1, 0)
+        gui_layout.addWidget(battstats_box, 1, 0)
+        gui_layout.addWidget(mph_box, 1, 1)
+        gui_layout.addWidget(temps_box, 1, 2)
+        gui_layout.addWidget(self._bpsfault_warning, 2, 1)
         
-        """ Deprecated
-        # make main gui box.
-        self._gui_box = QGroupBox()
-        self._gui_box.set_style_sheet("background-color: black;")
-        self._gui_box.setLayout(self._gui_layout)
-        self._gui_box.setCursor(QCursor(Qt.CrossCursor))
-        self.setCentralWidget(self._gui_box)
-        """
+        # Makes main gui box.
+        gui_box = QGroupBox()
+        gui_box.setStyleSheet("background-color: black;")
+        gui_box.setLayout(gui_layout)
+        gui_box.setCursor(QCursor(Qt.CrossCursor))
+        self.setCentralWidget(gui_box)
 
         # Sets GUI attributes.
         self.setWindowTitle("SVT KSR1")
         self.setStyleSheet("background-color: black;")
-        self.setLayout(self._gui_layout)
         self.setCursor(QCursor(Qt.CrossCursor))
 
         # Timer to update GUI.
@@ -320,9 +318,9 @@ class GUI(QMainWindow):
         batt_amps -- main batt current
         aux_volts -- aux batt voltage
         """
-        self._batt_volts_display.setText('Batt Voltage: ' + batt_volts + 'V')
-        self._batt_amps_display.setText("Batt Current" + batt_amps + 'A')
-        self._aux_volts_display.setText('Aux Voltage: ' + aux_volts + 'V')
+        self._batt_volts_display.setText('Batt Voltage: ' + str(batt_volts) + 'V')
+        self._batt_amps_display.setText("Batt Current" + str(batt_amps) + 'A')
+        self._aux_volts_display.setText('Aux Voltage: ' + str(aux_volts) + 'V')
 
     def _update_mph(self, mph):
         """Updates the MPH GUI element.
@@ -340,9 +338,9 @@ class GUI(QMainWindow):
         solar_temp -- temperature, in celcius, of the solar array
         pi_temp -- temperature, in celcius, of the raspberry pi cpu
         """
-        self._batt_temp_display.setText('batt: ' + batt_temp + '°C')
-        self._solar_temp_display.setText('Solar Arr: ' + solar_temp + '°C')
-        self._pi_temp_display.setText('Pi: ' + pi_temp + '°C')
+        self._batt_temp_display.setText('batt: ' + str(batt_temp) + '°C')
+        self._solar_temp_display.setText('Solar Arr: ' + str(solar_temp) + '°C')
+        self._pi_temp_display.setText('Pi: ' + str(pi_temp) + '°C')
 
     def _update_bpsfault_warning(self, bpsfault):
         """Updates the BPS Fault warning GUI element.
@@ -351,11 +349,11 @@ class GUI(QMainWindow):
         bpsfault -- True if there is a BPS Fault, False id there is not
         """
         if (bpsfault):
-            self._bpsfault_warning.set_style_sheet('background-color: red;' 'font-size: 25px;')
+            self._bpsfault_warning.setStyleSheet('background-color: red;' 'font-size: 25px;')
         else:
-            self._bpsfault_warning.set_style_sheet('background-color: transparent;' 'font-size: 25px;')
+            self._bpsfault_warning.setStyleSheet('background-color: transparent;' 'font-size: 25px;')
 
-    def _keyPressEvent(self, event):
+    def keyPressEvent(self, event):
         if event.key() == Qt.Key_Escape and self.isFullScreen():
             self.showNormal()
             event.accept()
@@ -365,4 +363,4 @@ class GUI(QMainWindow):
         elif (event.key() == Qt.Key_Q):
             # Shuts down Program
             from main import quit
-            quit()
+            quit(self._canbus, self._light_controller)

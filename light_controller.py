@@ -61,9 +61,6 @@ class LightController(Thread):
                 self._r_blinker_on = False
                 time.sleep(0.5)
 
-            else:
-                time.sleep(0.016)
-
     def stop(self):
         self._running = False
 

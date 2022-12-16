@@ -11,12 +11,14 @@ if __name__ == '__main__':
     
     light_controller = LightController()
     light_controller.start()
-
+    
     app = QApplication(sys.argv)
     gui = GUI(canbus, light_controller)
     app.exec()
 
-def quit():
+def quit(canbus, light_controller):
     canbus.stop()
+    canbus.join()
     light_controller.stop()
-    QApplication.quit()
+    light_controller.join()
+    sys.exit(0)

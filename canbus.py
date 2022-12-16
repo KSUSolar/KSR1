@@ -36,13 +36,13 @@ class CanBus(Thread):
         self._bpsfault = self.DEF_BPSFAULT
 
     def run(self):
-        while self._running:
-            BATT_DATA_ID = 1712
-            SOLAR_DATA_ID = 3008
+        BATT_DATA_ID = 1712
+        SOLAR_DATA_ID = 3008
 
+        while self._running:
             data_found = False
         
-            while not data_found:
+            while not data_found and self._running:
                 msg = self._canbus.recv()
                 if (msg.arbitration_id == BATT_DATA_ID):
                     data_found = True
@@ -52,7 +52,8 @@ class CanBus(Thread):
 
             data_found = False
 
-            while not data_found:
+            while not data_found and self._running:
+                print('ran')
                 msg = self._canbus.recv()
                 if (msg.arbitration_id == 1713):
                     data_found = True
@@ -60,7 +61,8 @@ class CanBus(Thread):
 
             data_found = False
 
-            while not data_found:
+            while not data_found and self._running:
+                print('ran')
                 msg = self._canbus.recv()
                 if (msg.arbitration_id == 1714):
                     data_found = True
@@ -68,13 +70,14 @@ class CanBus(Thread):
             
             data_found = False
 
-            while not data_found:
+            while not data_found and self._running:
+                print('ran')
                 msg = self._canbus.recv()
                 if (msg.arbitration_id == SOLAR_DATA_ID):
                     data_found = True
                     # IMPLEMENTATION NEEDED
 
-            self._pi_temp = CPUTemperature.temperature()
+            self._pi_temp = CPUTemperature.temperature
 
     def stop(self):
         self._running = False
