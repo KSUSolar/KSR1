@@ -12,7 +12,11 @@ class CanBus(Thread):
     DEF_BATT_AMPS = 0
     DEF_AUX_VOLTS = 0
     DEF_MPH = 0
-    DEF_BATT_TEMP = 0
+    DEF_BATT_TEMP_HIGH = 0
+    DEF_BATT_TEMP_AVG = 0
+    DEF_BATT_TEMP_LOW = 0
+    DEF_BATT_HIGH_ID = 0 # This is the ID of the high temp thermistor
+    DEF_BATT_LOW_ID = 0 # This is the ID of the low temp thermistor
     DEF_SOLAR_TEMP = 0
     DEF_PI_TEMP = 0
     DEF_BPSFAULT = False
@@ -30,7 +34,9 @@ class CanBus(Thread):
         self._batt_amps = self.DEF_BATT_AMPS
         self._aux_volts = self.DEF_AUX_VOLTS
         self._mph = self.DEF_MPH
-        self._batt_temp = self.DEF_BATT_TEMP
+        self._batt_temp_high = self.DEF_BATT_TEMP_HIGH
+        self._batt_temp_avg = self.DEF_BATT_TEMP_AVG
+        self._batt_temp_low = self.DEF_BATT_TEMP_LOW
         self._solar_temp = self.DEF_SOLAR_TEMP
         self._pi_temp = self.DEF_PI_TEMP
         self._bpsfault = self.DEF_BPSFAULT
@@ -40,11 +46,28 @@ class CanBus(Thread):
         SOLAR_DATA_ID = 3008
 
         while self._running:
+            ## These are BMS data packets about the battery ##
+            BATT_DATA_ID1 = 1712
+            BATT_DATA_ID2 = 1713
+
+            ## These are motor controller packets about the motor and motor controller ##
+            MOTOR_DATA_ID1 = 217128575
+            MOTOR_DATA_ID2 = 404
+
+            ## These are MPPT packets about the solar array ##
+            """
+                We don't know the packet IDs for the MPPTs yet because they're variable
+                and we need to test it wired up with the full system.
+            """
+            SOLAR_DATA_ID1 = 404
+            SOLAR_DATA_ID2 = 404
+            SOLAR_DATA_ID3 = 404
+
             data_found = False
         
             while not data_found and self._running:
                 msg = self._canbus.recv()
-                if (msg.arbitration_id == BATT_DATA_ID):
+                if (msg.arbitration_id == BATT_DATA_ID1):
                     data_found = True
                     self._batt_amps = msg.data[1]
                     self._batt_volts = msg.data[3]
@@ -55,8 +78,22 @@ class CanBus(Thread):
             while not data_found and self._running:
                 print('ran')
                 msg = self._canbus.recv()
-                if (msg.arbitration_id == 1713):
+                if (msg.arbitration_id == BATT_DATA_ID2):
                     data_found = True
+                    self._batt_amps = msg.data[0]
+                    self._batt_volts = msg.data[1]
+                    self._batt_charge = msg.data[2]
+                    self._batt_charge = msg.data[3]
+                    self._batt_charge = msg.data[4]
+
+            data_found = False
+
+            while not data_found:
+                msg = self._canbus.recv()
+                if (msg.arbitration_id == MOTOR_DATA_ID1):
+                    data_found = True
+                    # 14 teeth on the motor sprocket
+                    # ?? teeth on the swing arm sprocket
                     # IMPLEMENTATION NEEDED
 
             data_found = False
@@ -64,8 +101,10 @@ class CanBus(Thread):
             while not data_found and self._running:
                 print('ran')
                 msg = self._canbus.recv()
-                if (msg.arbitration_id == 1714):
+                if (msg.arbitration_id == MOTOR_DATA_ID2):
                     data_found = True
+                    # 14 teeth on the motor sprocket
+                    # ?? teeth on the swing arm sprocket
                     # IMPLEMENTATION NEEDED
             
             data_found = False
@@ -73,11 +112,29 @@ class CanBus(Thread):
             while not data_found and self._running:
                 print('ran')
                 msg = self._canbus.recv()
-                if (msg.arbitration_id == SOLAR_DATA_ID):
+                if (msg.arbitration_id == SOLAR_DATA_ID1):
                     data_found = True
                     # IMPLEMENTATION NEEDED
 
-            self._pi_temp = CPUTemperature.temperature
+            data_found = False
+
+            while not data_found:
+                msg = self._canbus.recv()
+                if (msg.arbitration_id == SOLAR_DATA_ID2):
+                    data_found = True
+                    # 14 teeth on the motor sprocket
+                    # ?? teeth on the swing arm sprocket
+                    # IMPLEMENTATION NEEDED
+
+            data_found = False
+
+            while not data_found:
+                msg = self._canbus.recv()
+                if (msg.arbitration_id == SOLAR_DATA_ID3):
+                    data_found = True
+                    # IMPLEMENTATION NEEDED
+            
+            self._pi_temp = CPUTemperature.temperature()
 
     def stop(self):
         self._running = False
