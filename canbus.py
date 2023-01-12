@@ -129,7 +129,7 @@ class CanBus(Thread):
 
             data_found = False
 
-            while not data_found:
+            while not data_found and self._running:
                 msg = self._canbus.recv()
                 if (msg.arbitration_id == MOTOR_DATA_ID1):
                     data_found = True
@@ -192,7 +192,7 @@ class CanBus(Thread):
 
             data_found = False
 
-            while not data_found:
+            while not data_found and self._running:
                 msg = self._canbus.recv()
                 if (msg.arbitration_id == SOLAR_DATA_ID2):
                     data_found = True
@@ -201,7 +201,7 @@ class CanBus(Thread):
 
             data_found = False
 
-            while not data_found:
+            while not data_found and self._running:
                 msg = self._canbus.recv()
                 if (msg.arbitration_id == SOLAR_DATA_ID3):
                     data_found = True
