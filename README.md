@@ -1,15 +1,6 @@
 # KSR1 #
 Data Logging, Dashboard, and Wireless Communication for the KSR 
 
-# Autostart #
-Just in case you need to setup the canBus hat again or the autostart
-The autostart .desktop file is located here:
-/etc/xdg/autostart/display.desktop
-with this in the file:
-[Desktop Entry]
-Name={Whatever you want}
-Exec=/usr/bin/python {whatever .py file you want to run}
-
 # canBus Hat Setup #
 In the very bottom of the /boot/config.txt file put:
 dtoverlay=spi1-2cs
