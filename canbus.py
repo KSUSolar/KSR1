@@ -49,8 +49,8 @@ class CanBus(Thread):
     DEF_BATT_TEMP_AVG = 0
     DEF_BATT_TEMP_HIGH = 0
     DEF_BATT_TEMP_LOW = 0
-    DEF_BATT_HIGH_ID = 0 # This is the ID of the high temp thermistor
-    DEF_BATT_LOW_ID = 0 # This is the ID of the low temp thermistor
+    DEF_BATT_TEMP_HIGH_ID = 0 # This is the ID of the high temp thermistor
+    DEF_BATT_TEMP_LOW_ID = 0 # This is the ID of the low temp thermistor
 
     DEF_BATT_CHARGE_PERC = 0
     DEF_BATT_VOLTS = 0
@@ -59,9 +59,9 @@ class CanBus(Thread):
 
     DEF_SOLAR_PCB_TEMP = 0
     DEF_SOLAR_MOSFET_TEMP = 0
-    DEF_SOLAR_AMP_IN = 0
-    DEF_SOLAR_VOLT_IN = 0
-    DEF_SOLAR_VOLT_OUT = 0
+    DEF_SOLAR_AMPS_IN = 0
+    DEF_SOLAR_VOLTS_IN = 0
+    DEF_SOLAR_VOLTS_OUT = 0
     
     DEF_PI_TEMP = 0
     DEF_BPSFAULT = False
@@ -80,11 +80,11 @@ class CanBus(Thread):
         self._kelly_controller_temp = self.DEF_KELLY_CONTROLLER_TEMP
         self._error_code_readout = self.DEF_ERROR_CODE_READOUT
 
-        self._batt_temp_high = self.DEF_BATT_TEMP_HIGH
         self._batt_temp_avg = self.DEF_BATT_TEMP_AVG
+        self._batt_temp_high = self.DEF_BATT_TEMP_HIGH
         self._batt_temp_low = self.DEF_BATT_TEMP_LOW
-        self._batt_high_id = self.DEF_BATT_HIGH_ID
-        self._batt_low_id = self.DEF_BATT_LOW_ID
+        self._batt_temp_high_id = self.DEF_BATT_TEMP_HIGH_ID
+        self._batt_temp_low_id = self.DEF_BATT_TEMP_LOW_ID
 
         self._batt_charge_perc = self.DEF_BATT_CHARGE_PERC
         self._batt_volts = self.DEF_BATT_VOLTS
@@ -93,9 +93,9 @@ class CanBus(Thread):
 
         self._solar_pcb_temp = self.DEF_SOLAR_PCB_TEMP
         self._solar_mosfet_temp = self.DEF_SOLAR_MOSFET_TEMP
-        self._solar_amp_in = self.DEF_SOLAR_AMP_IN
-        self._solar_volt_in = self.DEF_SOLAR_VOLT_IN
-        self._solar_volt_out = self.DEF_SOLAR_VOLT_OUT
+        self._solar_amps_in = self.DEF_SOLAR_AMPS_IN
+        self._solar_volts_in = self.DEF_SOLAR_VOLTS_IN
+        self._solar_volts_out = self.DEF_SOLAR_VOLTS_OUT
 
         self._pi_temp = self.DEF_PI_TEMP
         self._bpsfault = self.DEF_BPSFAULT
@@ -205,7 +205,7 @@ class CanBus(Thread):
                 msg = self._canbus.recv()
                 if (msg.arbitration_id == SOLAR_DATA_ID1):
                     data_found = True
-                    # This packet gives _solar_amp_in and _solar_volt_in
+                    # This packet gives _solar_amps_in and _solar_volts_in
                     # IMPLEMENTATION NEEDED
 
             data_found = False
@@ -214,7 +214,7 @@ class CanBus(Thread):
                 msg = self._canbus.recv()
                 if (msg.arbitration_id == SOLAR_DATA_ID2):
                     data_found = True
-                    # This packet gives _solar_volt_out
+                    # This packet gives _solar_volts_out
                     # IMPLEMENTATION NEEDED
 
             data_found = False
@@ -230,6 +230,32 @@ class CanBus(Thread):
 
     def stop(self):
         self._running = False
+
+    @property
+    def stats(self):
+        return {
+            'Gear' : self.gear, 
+            'MPH' : self.mph,
+            'Kelly Motor Temp' : self.kelly_motor_temp,
+            'Kelly Controller Temp' : self.kelly_controller_temp,
+            'Errors' : self.error_code_readout,
+            'Batt Temp Avg' : self.batt_temp_avg,
+            'Batt Temp High' : self.batt_temp_high,
+            'Batt Temp Low' : self.batt_temp_low,
+            'Batt Temp High ID' : self.batt_temp_high_id,
+            'Batt Temp Low ID' : self.batt_temp_low_id,
+            'Batt Charge %' : self.batt_charge_perc,
+            'Batt Volts' : self.batt_volts,
+            'Batt Amps' : self.batt_amps,
+            'Aux Volts' : self.aux_volts,
+            'Solar PCB Temp' : self.solar_pcb_temp,
+            'Solar MOSFET Temp' : self.solar_mosfet_temp,
+            'Solar Amps In' : self.solar_amps_in,
+            'Solar Volts In' : self.solar_volts_in,
+            'Solar Volts Out' : self.solar_volts_out,
+            'Pi Temp' : self.pi_temp,
+            'BPS Fault' : self.bpsfault
+        }
 
     @property
     def gear(self):
@@ -264,12 +290,12 @@ class CanBus(Thread):
         return self._batt_temp_low
 
     @property
-    def batt_high_id(self):
-        return self._batt_high_id
+    def batt_temp_high_id(self):
+        return self._batt_temp_high_id
 
     @property
-    def batt_low_id(self):
-        return self._batt_low_id
+    def batt_temp_low_id(self):
+        return self._batt_temp_low_id
 
     @property
     def batt_charge_perc(self):
@@ -296,15 +322,15 @@ class CanBus(Thread):
         return self._solar_mosfet_temp
 
     @property
-    def solar_amp_in(self):
+    def solar_amps_in(self):
         return self._solar_amp_in
 
     @property
-    def solar_volt_in(self):
+    def solar_volts_in(self):
         return self._solar_volt_in
 
     @property
-    def solar_volt_out(self):
+    def solar_volts_out(self):
         return self._solar_volt_out
 
     @property

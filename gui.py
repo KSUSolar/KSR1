@@ -13,6 +13,7 @@ __email__       = "solarvehicleteam@kennesaw.edu"
 __status__      = "Development"
 
 from canbus import CanBus
+from light_controller import LightController
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import QTimer, Qt
 from PyQt5.QtGui import QCursor
@@ -20,7 +21,7 @@ from PyQt5.QtGui import QCursor
 
 class GUI(QMainWindow):
 
-    def __init__(self, canbus, light_controller):
+    def __init__(self, canbus: CanBus, light_controller: LightController):
         super().__init__()
         self._canbus = canbus
         self._light_controller = light_controller

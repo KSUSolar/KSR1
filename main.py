@@ -17,7 +17,9 @@ import sys
 from gui import GUI
 from canbus import CanBus
 from light_controller import LightController
+from logger import Logger
 from PyQt5.QtWidgets import QApplication
+
 
 if __name__ == '__main__':
     canbus = CanBus()
@@ -25,14 +27,19 @@ if __name__ == '__main__':
     
     light_controller = LightController()
     light_controller.start()
+
+    logger = Logger(canbus)
+    canbus.start()
     
     app = QApplication(sys.argv)
     gui = GUI(canbus, light_controller)
     app.exec()
 
-def quit(canbus, light_controller):
+def quit(canbus: CanBus, light_controller: LightController, logger: Logger):
     canbus.stop()
     canbus.join()
     light_controller.stop()
     light_controller.join()
+    logger.stop()
+    logger.join()
     sys.exit(0)
