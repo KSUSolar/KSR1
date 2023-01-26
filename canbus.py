@@ -19,7 +19,7 @@ from gpiozero import CPUTemperature
 from threading import Thread
 
 
-class CanBus(Thread):
+class CANBus(Thread):
     #DEF = DEFAULT
     DEF_GEAR = 1
 
@@ -67,7 +67,7 @@ class CanBus(Thread):
     DEF_BPSFAULT = False
 
     def __init__(self):
-        Thread.__init__(self)
+        Thread.__init__(self, name = 'CANBus')
         os.system('sudo ip link set can0 type can bitrate 500000') # Creates the canbus interface.
         os.system('sudo ifconfig can0 up') # Sarts the canbus interface.
         self._canbus = can.interface.Bus(interface = 'socketcan', channel = 'can0', baudrate = 500000)
@@ -117,6 +117,8 @@ class CanBus(Thread):
         SOLAR_DATA_ID1 = 404 # Don't know
         SOLAR_DATA_ID2 = 404 # Don't know
         SOLAR_DATA_ID3 = 404 # Don't know
+
+        print('canbus thread started.')
 
         while self._running:
             data_found = False
@@ -323,15 +325,15 @@ class CanBus(Thread):
 
     @property
     def solar_amps_in(self):
-        return self._solar_amp_in
+        return self._solar_amps_in
 
     @property
     def solar_volts_in(self):
-        return self._solar_volt_in
+        return self._solar_volts_in
 
     @property
     def solar_volts_out(self):
-        return self._solar_volt_out
+        return self._solar_volts_out
 
     @property
     def pi_temp(self):

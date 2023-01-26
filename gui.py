@@ -12,7 +12,7 @@ __maintainer__  = "Aaron Harbin, Daniel Tebor"
 __email__       = "solarvehicleteam@kennesaw.edu"
 __status__      = "Development"
 
-from canbus import CanBus
+from canbus import CANBus
 from light_controller import LightController
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import QTimer, Qt
@@ -21,7 +21,7 @@ from PyQt5.QtGui import QCursor
 
 class GUI(QMainWindow):
 
-    def __init__(self, canbus: CanBus, light_controller: LightController):
+    def __init__(self, canbus: CANBus, light_controller: LightController):
         super().__init__()
         self._canbus = canbus
         self._light_controller = light_controller
@@ -73,7 +73,7 @@ class GUI(QMainWindow):
 
         # Creates the batt charge display.
         self._battcharge = QLabel(
-            'SOC: ' + str(CanBus.DEF_BATT_CHARGE_PERC) + '%')
+            'SOC: ' + str(CANBus.DEF_BATT_CHARGE_PERC) + '%')
         self._battcharge.setStyleSheet(
             'background-color: transparent;'
             'color: white;'
@@ -88,7 +88,7 @@ class GUI(QMainWindow):
         battstats_box = QGroupBox()
 
         self._batt_volts_display = QLabel(
-            'Batt Voltage: ' + str(CanBus.DEF_BATT_VOLTS) + 'V')
+            'Batt Voltage: ' + str(CANBus.DEF_BATT_VOLTS) + 'V')
         self._batt_volts_display.setStyleSheet(
             'color: white;'
             'font-family: tahoma, geneva, sans-serif;'
@@ -96,7 +96,7 @@ class GUI(QMainWindow):
             )
 
         self._batt_amps_display = QLabel(
-            'Batt Current: ' + str(CanBus.DEF_BATT_AMPS) + 'A')
+            'Batt Current: ' + str(CANBus.DEF_BATT_AMPS) + 'A')
         self._batt_amps_display.setStyleSheet(
             'color: white;'
             ' font-family: tahoma, geneva, sans-serif;'
@@ -104,7 +104,7 @@ class GUI(QMainWindow):
             )
 
         self._aux_volts_display = QLabel(
-            'Aux Voltage: ' + str(CanBus.DEF_AUX_VOLTS) + 'V')
+            'Aux Voltage: ' + str(CANBus.DEF_AUX_VOLTS) + 'V')
         self._aux_volts_display .setStyleSheet(
             'color: white;'
             'font-family: tahoma, geneva, sans-serif;'
@@ -129,7 +129,7 @@ class GUI(QMainWindow):
             )
         mph_label.setAlignment(Qt.AlignHCenter)
         
-        self._mph_display = QLabel(str(CanBus.DEF_MPH))
+        self._mph_display = QLabel(str(CANBus.DEF_MPH))
         self._mph_display.setStyleSheet(
             'color: #FFFFFF;'
             'font-family: tahoma, geneva, sans-serif;'
@@ -148,7 +148,7 @@ class GUI(QMainWindow):
         temps_box = QGroupBox()
 
         self._batt_temp_display = QLabel(
-            'batt: ' + str(CanBus.DEF_BATT_TEMP) + '°C')
+            'batt: ' + str(CANBus.DEF_BATT_TEMP_AVG) + '°C')
         self._batt_temp_display.setStyleSheet(
             'color: white;'
             'font-family: tahoma, geneva, sans-serif;'
@@ -156,7 +156,7 @@ class GUI(QMainWindow):
             )
         
         self._solar_temp_display = QLabel(
-            'Solar Array: ' + str(CanBus.DEF_SOLAR_TEMP) + '°C')
+            'Solar Array: ' + str(CANBus.DEF_SOLAR_PCB_TEMP) + '°C')
         self._solar_temp_display.setStyleSheet(
             'color: white;'
             'font-family: tahoma, geneva, sans-serif;'
@@ -164,7 +164,7 @@ class GUI(QMainWindow):
             )
 
         self._pi_temp_display = QLabel(
-            'Pi: ' + str(CanBus.DEF_PI_TEMP) + '°C')
+            'Pi: ' + str(CANBus.DEF_PI_TEMP) + '°C')
         self._pi_temp_display.setStyleSheet(
             'color: white;'
             'font-family: tahoma, geneva, sans-serif;'
@@ -220,6 +220,7 @@ class GUI(QMainWindow):
         self.qTimer.start()
 
         # Turn on screen.
+        print('gui started')
         self.showFullScreen()
         self.show()
 
@@ -236,8 +237,8 @@ class GUI(QMainWindow):
             self._canbus.aux_volts
             )
         self._update_mph(self._canbus.mph)
-        self._update_temps(self._canbus.batt_temp,
-            self._canbus.solar_temp,
+        self._update_temps(self._canbus.batt_temp_avg,
+            self._canbus.solar_pcb_temp,
             self._canbus.pi_temp
             )
         self._update_bpsfault_warning(self._canbus.bpsfault)

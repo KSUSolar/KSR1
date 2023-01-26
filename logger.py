@@ -13,32 +13,32 @@ __email__       = "solarvehicleteam@kennesaw.edu"
 __status__      = "Development"
 
 import csv
-import numpy as np
 import time
 
-from canbus import CanBus
+from canbus import CANBus
 from datetime import datetime
 from threading import Thread
 
 
 class Logger(Thread):
-    def __init__(self, canbus: CanBus):
-        Thread.__init__(self)
+    def __init__(self, canbus: CANBus):
+        Thread.__init__(self, name = 'Logger')
         self._canbus = canbus
         self._running = True
 
     def run(self):
-        current_date = datetime.now().strftime('%y-%m-%d')
+        date = datetime.now().strftime('%y-%m-%d')
         start_time = self.__current_time_hms()[:-3]
-        log_dir = 'logs/' + current_date + '_' + start_time + '.csv'
+        log_dir = 'logs/' + date + '_' + start_time + '.csv'
+        
+        print('Logger started')
 
         with open(log_dir, 'w') as log:
             writer = csv.writer(log)
-            
-        writer.writerow(self._canbus.stats.keys()) # Canbus headers.
-        while self._running:
-            writer.writerow(self.__current_time_hms() + self._canbus.stats.values())
-            time.sleep(0.5)
+            writer.writerow(self._canbus.stats.keys()) # Canbus headers.
+            while self._running:
+                writer.writerow([self.__current_time_hms()] + list(self._canbus.stats.values()))
+                time.sleep(0.5)
 
         log.close()
 
@@ -48,4 +48,4 @@ class Logger(Thread):
     @staticmethod
     def __current_time_hms():
         current_time = datetime.now()
-        return current_time.strftime('%H:%M:%S') + '.' + current_time.microsecond / 1000    
+        return current_time.strftime('%H:%M:%S') + '.' + str(current_time.microsecond)[:-4]

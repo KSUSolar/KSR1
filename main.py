@@ -15,31 +15,36 @@ __status__      = "Development"
 import sys
 
 from gui import GUI
-from canbus import CanBus
+from canbus import CANBus
 from light_controller import LightController
 from logger import Logger
 from PyQt5.QtWidgets import QApplication
 
+app = QApplication(sys.argv)
+canbus = CANBus()
+light_controller = LightController()
+logger = Logger(canbus)
 
 if __name__ == '__main__':
-    canbus = CanBus()
     canbus.start()
-    
-    light_controller = LightController()
     light_controller.start()
-
-    logger = Logger(canbus)
-    canbus.start()
-    
-    app = QApplication(sys.argv)
+    logger.start()
     gui = GUI(canbus, light_controller)
     app.exec()
 
-def quit(canbus: CanBus, light_controller: LightController, logger: Logger):
-    canbus.stop()
-    canbus.join()
-    light_controller.stop()
-    light_controller.join()
+def quit():
+    print('quiting')
+    
     logger.stop()
-    logger.join()
+    if logger.is_alive():
+        logger.join()
+
+    light_controller.stop()
+    if light_controller.is_alive():
+        light_controller.join()
+
+    canbus.stop()
+    if canbus.is_alive():
+        canbus.join()
+
     sys.exit(0)

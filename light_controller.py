@@ -20,7 +20,7 @@ from threading import Thread
 
 class LightController(Thread):
     def __init__(self):
-        Thread.__init__(self)
+        Thread.__init__(self, name = 'LightController')
         self._running = True
         self._l_blinker_on = False
         self._r_blinker_on = False
@@ -42,6 +42,8 @@ class LightController(Thread):
         GPIO.setup(L_BLINKER_INPUT_PIN , GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
         GPIO.setup(R_BLINKER_INPUT_PIN, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
         GPIO.setup(HAZ_INPUT_PIN, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+
+        print('LightController started')
 
         while self._running:
             if GPIO.input(L_BLINKER_INPUT_PIN) == 1:
