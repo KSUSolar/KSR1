@@ -3,7 +3,7 @@
 """gui.py: Car dashboard created with PyQt5."""
 
 __author__      = "Daniel Tebor"
-__copyright__   = "Copyright 2022 KSU Solar Vehicle Team"
+__copyright__   = "Copyright 2022 Solar Vehicle Team at KSU"
 __credits__     = ["Aaron Harbin, Daniel Tebor"]
 
 __license__     = "GPL"

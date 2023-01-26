@@ -3,7 +3,7 @@
 """light_controller.py: Uses GPIO to control car blinkers."""
 
 __author__      = "Daniel Tebor"
-__copyright__   = "Copyright 2022 KSU Solar Vehicle Team"
+__copyright__   = "Copyright 2022 Solar Vehicle Team at KSU"
 __credits__     = ["Aaron Harbin, Daniel Tebor"]
 
 __license__     = "GPL"
