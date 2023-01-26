@@ -1,7 +1,7 @@
-# KSR1 #
+# KSR1
 Data Logging, Dashboard, and Wireless Communication for the KSR 
 
-# canBus Hat Setup #
+# canBus Hat Setup
 In the very bottom of the /boot/config.txt file put:
 dtoverlay=spi1-2cs
 dtoverlay=mcp2515-can0, oscillator8000000, interrupt=25, spimaxfrequency=1000000

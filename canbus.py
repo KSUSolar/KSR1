@@ -1,8 +1,23 @@
+#!/usr/bin/env python3
+
+"""canbus.py: Retrieves hardware data from the 'can0' network interface."""
+
+__author__      = "Aaron Harbin, Daniel Tebor"
+__copyright__   = ""
+__credits__     = ["Aaron Harbin, Daniel Tebor"]
+
+__license__     = "GPL"
+__version__     = "1.0.3"
+__maintainer__  = ""
+__email__       = ""
+__status__      = "Development"
+
 import can
 import os
 
 from gpiozero import CPUTemperature
 from threading import Thread
+
 
 class CanBus(Thread):
     DEF_GEAR = 1

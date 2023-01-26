@@ -1,3 +1,17 @@
+#!/usr/bin/env python3
+
+"""transmitter.py: Transmits canbus.py data over radio."""
+
+__author__      = "Aaron Harbin"
+__copyright__   = ""
+__credits__     = ["Aaron Harbin, Daniel Tebor"]
+
+__license__     = "GPL"
+__version__     = "1.0.3"
+__maintainer__  = ""
+__email__       = ""
+__status__      = "Development"
+
 import digitalio
 import board
 import busio

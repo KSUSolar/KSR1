@@ -1,3 +1,17 @@
+#!/usr/bin/env python3
+
+"""gui.py: Car dashboard created with PyQt5."""
+
+__author__      = "Daniel Tebor"
+__copyright__   = ""
+__credits__     = ["Aaron Harbin, Daniel Tebor"]
+
+__license__     = "GPL"
+__version__     = "1.0.3"
+__maintainer__  = ""
+__email__       = ""
+__status__      = "Development"
+
 from canbus import CanBus
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import QTimer, Qt

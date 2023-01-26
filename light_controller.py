@@ -1,3 +1,17 @@
+#!/usr/bin/env python3
+
+"""light_controller.py: Uses GPIO to control car blinkers."""
+
+__author__      = "Daniel Tebor"
+__copyright__   = ""
+__credits__     = ["Aaron Harbin, Daniel Tebor"]
+
+__license__     = "GPL"
+__version__     = "1.0.3"
+__maintainer__  = ""
+__email__       = ""
+__status__      = "Development"
+
 import RPi.GPIO as GPIO
 import time
 

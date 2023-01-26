@@ -1,3 +1,17 @@
+#!/usr/bin/env python3
+
+"""main.py: Main entrypoint for KSR1 program. Sets up required threads."""
+
+__author__      = "Daniel Tebor"
+__copyright__   = ""
+__credits__     = ["Aaron Harbin, Daniel Tebor"]
+
+__license__     = "GPL"
+__version__     = "1.0.3"
+__maintainer__  = ""
+__email__       = ""
+__status__      = "Development"
+
 import sys
 
 from gui import GUI
