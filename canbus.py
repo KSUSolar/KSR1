@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 
-"""canbus.py: Retrieves hardware data from the 'can0' network interface."""
+"""canbus.py: Retrieves hardware telemetry using the 'can0' network interface."""
 
 __author__      = "Aaron Harbin, Daniel Tebor"
 __copyright__   = "Copyright 2022 Solar Vehicle Team at KSU"
 __credits__     = ["Aaron Harbin, Daniel Tebor"]
 
 __license__     = "GPL"
-__version__     = "1.0.3"
+__version__     = "1.0.4"
 __maintainer__  = "Aaron Harbin, Daniel Tebor"
 __email__       = "solarvehicleteam@kennesaw.edu"
 __status__      = "Development"
@@ -15,18 +15,12 @@ __status__      = "Development"
 import can
 import os
 
-from gpiozero import CPUTemperature
-from threading import Thread
+from threading import Event, Thread
 
 
 class CANBus(Thread):
-    #DEF = DEFAULT
-    DEF_GEAR = 1
+    THREAD_NAME = 'CANBus'
 
-    DEF_MPH = 0
-    DEF_KELLY_MOTOR_TEMP = 0
-    DEF_KELLY_CONTROLLER_TEMP = 0
-    DEF_ERROR_CODE_READOUT = ""
     ERROR_CODES = [
         "0:Identification",
         "1:Over Volt",
@@ -46,70 +40,54 @@ class CANBus(Thread):
         "15:Pi_Code_Error"
     ]
 
-    DEF_BATT_TEMP_AVG = 0
-    DEF_BATT_TEMP_HIGH = 0
-    DEF_BATT_TEMP_LOW = 0
-    DEF_BATT_TEMP_HIGH_ID = 0 # This is the ID of the high temp thermistor
-    DEF_BATT_TEMP_LOW_ID = 0 # This is the ID of the low temp thermistor
-
-    DEF_BATT_CHARGE_PERC = 0
-    DEF_BATT_VOLTS = 0
-    DEF_BATT_AMPS = 0
-    DEF_AUX_VOLTS = 0
-
-    DEF_SOLAR_PCB_TEMP = 0
-    DEF_SOLAR_MOSFET_TEMP = 0
-    DEF_SOLAR_AMPS_IN = 0
-    DEF_SOLAR_VOLTS_IN = 0
-    DEF_SOLAR_VOLTS_OUT = 0
-    
-    DEF_PI_TEMP = 0
-    DEF_BPSFAULT = False
-
     def __init__(self):
-        Thread.__init__(self, name = 'CANBus')
+        Thread.__init__(self, name = self.THREAD_NAME)
+        self._stop = Event()
+
         os.system('sudo ip link set can0 type can bitrate 500000') # Creates the canbus interface.
         os.system('sudo ifconfig can0 up') # Sarts the canbus interface.
         self._canbus = can.interface.Bus(interface = 'socketcan', channel = 'can0', baudrate = 500000)
-        self._running = True
+        
+        self._gear = 1
 
-        self._gear = self.DEF_GEAR
+        self._mph = 0
+        self._kelly_motor_temp = -1
+        self._kelly_controller_temp = -1
+        self._error_code_readout = ""
 
-        self._mph = self.DEF_MPH
-        self._kelly_motor_temp = self.DEF_KELLY_MOTOR_TEMP
-        self._kelly_controller_temp = self.DEF_KELLY_CONTROLLER_TEMP
-        self._error_code_readout = self.DEF_ERROR_CODE_READOUT
+        self._batt_temp_avg = -1 # Avg of Battery cell temps.
+        self._batt_temp_high = -1 # Temp of hottest cell.
+        self._batt_temp_low = -1 # Temp of coolest cell.
+        self._batt_temp_high_id = -1  # ID of thermistor measuring hottest cell.
+        self._batt_temp_low_id = -1  # ID of thermistor measuring coolest cell.
+        self._bpsfault = False
 
-        self._batt_temp_avg = self.DEF_BATT_TEMP_AVG
-        self._batt_temp_high = self.DEF_BATT_TEMP_HIGH
-        self._batt_temp_low = self.DEF_BATT_TEMP_LOW
-        self._batt_temp_high_id = self.DEF_BATT_TEMP_HIGH_ID
-        self._batt_temp_low_id = self.DEF_BATT_TEMP_LOW_ID
+        self._batt_charge_perc = -1
+        self._batt_volts = -1
+        self._batt_amps = -1
+        self._aux_volts = -1
 
-        self._batt_charge_perc = self.DEF_BATT_CHARGE_PERC
-        self._batt_volts = self.DEF_BATT_VOLTS
-        self._batt_amps = self.DEF_BATT_AMPS
-        self._aux_volts = self.DEF_AUX_VOLTS
-
-        self._solar_pcb_temp = self.DEF_SOLAR_PCB_TEMP
-        self._solar_mosfet_temp = self.DEF_SOLAR_MOSFET_TEMP
-        self._solar_amps_in = self.DEF_SOLAR_AMPS_IN
-        self._solar_volts_in = self.DEF_SOLAR_VOLTS_IN
-        self._solar_volts_out = self.DEF_SOLAR_VOLTS_OUT
-
-        self._pi_temp = self.DEF_PI_TEMP
-        self._bpsfault = self.DEF_BPSFAULT
+        self._solar_pcb_temp = -1
+        self._solar_mosfet_temp = -1
+        self._solar_amps_in = -1
+        self._solar_volts_in = -1
+        self._solar_volts_out = -1
 
     def run(self):
-        ## These are motor controller packets about the motor and motor controller ##
+        print(self.name + ' started')
+
+        # Timeout if the canbus is unresponsive.
+        RECV_TIMEOUT = 10
+
+        # These are motor controller packets about the motor and motor controller.
         MOTOR_DATA_ID1 = 217128575
         MOTOR_DATA_ID2 = 404 # Don't know
 
-        ## These are BMS data packets about the battery ##
+        # These are BMS data packets about the battery.
         BATT_DATA_ID1 = 1712
         BATT_DATA_ID2 = 1713
 
-        ## These are MPPT packets about the solar array ##
+        # These are MPPT packets about the solar array.
         """
             We don't know the packet IDs for the MPPTs yet because they're variable
             and we need to test it wired up with the full system.
@@ -118,15 +96,13 @@ class CANBus(Thread):
         SOLAR_DATA_ID2 = 404 # Don't know
         SOLAR_DATA_ID3 = 404 # Don't know
 
-        print('canbus thread started.')
-
-        while self._running:
-            data_found = False
+        while self._stop.is_set():
+            data_found = 0
         
-            while not data_found and self._running:
-                msg = self._canbus.recv()
+            while data_found < 7 and not self._stop.is_set():
+                msg = self._canbus.recv(RECV_TIMEOUT)
                 if (msg.arbitration_id == MOTOR_DATA_ID1):
-                    data_found = True
+                    data_found += 1
                     # This packets gives _mph and error codes
                     # I'm going to do my best to estimate the MPH but
                     # we're going to have to get more information from mechanical
@@ -163,80 +139,51 @@ class CANBus(Thread):
                     
                     self._error_code_readout = self._error_code_readout[0:-2]
 
-
-            data_found = False
-
-            while not data_found and self._running:
-                print('ran')
-                msg = self._canbus.recv()
-                if (msg.arbitration_id == MOTOR_DATA_ID2):
-                    data_found = True
+                elif (msg.arbitration_id == MOTOR_DATA_ID2):
+                    data_found += 1
                     # TODO here:
                     # - Read Controller temperature (self._kelly_motor_temp)
                     # - Read Motor temperature (self._kelly_controller_temp)
                     # - Read forward switch & backward switch (msg[5])
                     # - Verify forward and backward with status of command (msg[4])
-            
-            data_found = False
 
-            while not data_found and self._running:
-                msg = self._canbus.recv()
-                if (msg.arbitration_id == BATT_DATA_ID1):
-                    data_found = True
+                elif (msg.arbitration_id == BATT_DATA_ID1):
+                    data_found += 1
                     self._batt_amps = msg.data[1]
                     self._batt_volts = msg.data[3]
                     self._batt_charge = msg.data[5]
 
-            data_found = False
-
-            while not data_found and self._running:
-                print('ran')
-                msg = self._canbus.recv()
-                if (msg.arbitration_id == BATT_DATA_ID2):
-                    data_found = True
+                elif (msg.arbitration_id == BATT_DATA_ID2):
+                    data_found += 1
                     self._batt_amps = msg.data[0]
                     self._batt_volts = msg.data[1]
                     self._batt_charge = msg.data[2]
                     self._batt_charge = msg.data[3]
                     self._batt_charge = msg.data[4]
 
-            data_found = False
-
-            while not data_found and self._running:
-                print('ran')
-                msg = self._canbus.recv()
-                if (msg.arbitration_id == SOLAR_DATA_ID1):
-                    data_found = True
+                elif (msg.arbitration_id == SOLAR_DATA_ID1):
+                    data_found += 1
                     # This packet gives _solar_amps_in and _solar_volts_in
                     # IMPLEMENTATION NEEDED
 
-            data_found = False
-
-            while not data_found and self._running:
-                msg = self._canbus.recv()
-                if (msg.arbitration_id == SOLAR_DATA_ID2):
-                    data_found = True
+                elif (msg.arbitration_id == SOLAR_DATA_ID2):
+                    data_found += 1
                     # This packet gives _solar_volts_out
                     # IMPLEMENTATION NEEDED
 
-            data_found = False
-
-            while not data_found and self._running:
-                msg = self._canbus.recv()
-                if (msg.arbitration_id == SOLAR_DATA_ID3):
-                    data_found = True
+                elif (msg.arbitration_id == SOLAR_DATA_ID3):
+                    data_found += 1
                     # This packet gives _solar_pcb_temp and _solar_mosfet_temp
                     # IMPLEMENTATION NEEDED
-            
-            self._pi_temp = CPUTemperature.temperature()
 
     def stop(self):
-        self._running = False
+        print('Shutting down ' + self.name)
+        self._stop.set()
 
     @property
-    def stats(self):
+    def data(self):
         return {
-            'Gear' : self.gear, 
+            'Gear' : self.gear,
             'MPH' : self.mph,
             'Kelly Motor Temp' : self.kelly_motor_temp,
             'Kelly Controller Temp' : self.kelly_controller_temp,
@@ -250,13 +197,12 @@ class CANBus(Thread):
             'Batt Volts' : self.batt_volts,
             'Batt Amps' : self.batt_amps,
             'Aux Volts' : self.aux_volts,
+            'BPS Fault' : self.bpsfault,
             'Solar PCB Temp' : self.solar_pcb_temp,
             'Solar MOSFET Temp' : self.solar_mosfet_temp,
             'Solar Amps In' : self.solar_amps_in,
             'Solar Volts In' : self.solar_volts_in,
             'Solar Volts Out' : self.solar_volts_out,
-            'Pi Temp' : self.pi_temp,
-            'BPS Fault' : self.bpsfault
         }
 
     @property
@@ -316,6 +262,10 @@ class CANBus(Thread):
         return self._aux_volts
 
     @property
+    def bpsfault(self):
+        return self._bpsfault
+
+    @property
     def solar_pcb_temp(self):
         return self._solar_pcb_temp
 
@@ -334,11 +284,3 @@ class CANBus(Thread):
     @property
     def solar_volts_out(self):
         return self._solar_volts_out
-
-    @property
-    def pi_temp(self):
-        return self._pi_temp
-
-    @property
-    def bpsfault(self):
-        return self._bpsfault

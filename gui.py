@@ -7,7 +7,7 @@ __copyright__   = "Copyright 2022 Solar Vehicle Team at KSU"
 __credits__     = ["Aaron Harbin, Daniel Tebor"]
 
 __license__     = "GPL"
-__version__     = "1.0.3"
+__version__     = "1.0.4"
 __maintainer__  = "Aaron Harbin, Daniel Tebor"
 __email__       = "solarvehicleteam@kennesaw.edu"
 __status__      = "Development"
@@ -220,7 +220,7 @@ class GUI(QMainWindow):
         self.qTimer.start()
 
         # Turn on screen.
-        print('gui started')
+        print('GUI started')
         self.showFullScreen()
         self.show()
 
@@ -378,5 +378,5 @@ class GUI(QMainWindow):
             event.accept()
         elif (event.key() == Qt.Key_Q):
             # Shuts down Program
-            from main import quit
-            quit(self._canbus, self._light_controller)
+            from main import stop
+            stop()

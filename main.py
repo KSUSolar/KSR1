@@ -7,7 +7,7 @@ __copyright__   = "Copyright 2022 Solar Vehicle Team at KSU"
 __credits__     = ["Aaron Harbin, Daniel Tebor"]
 
 __license__     = "GPL"
-__version__     = "1.0.3"
+__version__     = "1.0.4"
 __maintainer__  = "Aaron Harbin, Daniel Tebor"
 __email__       = "solarvehicleteam@kennesaw.edu"
 __status__      = "Development"
@@ -32,19 +32,17 @@ if __name__ == '__main__':
     gui = GUI(canbus, light_controller)
     app.exec()
 
-def quit():
+def stop():
     print('quiting')
+    app.closeAllWindows()
     
     logger.stop()
-    if logger.is_alive():
-        logger.join()
+    logger.join()
 
     light_controller.stop()
-    if light_controller.is_alive():
-        light_controller.join()
+    light_controller.join()
 
     canbus.stop()
-    if canbus.is_alive():
-        canbus.join()
+    canbus.join()
 
-    sys.exit(0)
+    sys.exit(app.exec_())
