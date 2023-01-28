@@ -7,7 +7,7 @@ __copyright__   = "Copyright 2022 Solar Vehicle Team at KSU"
 __credits__     = ["Aaron Harbin, Daniel Tebor"]
 
 __license__     = "GPL"
-__version__     = "1.0.4"
+__version__     = "1.0.5"
 __maintainer__  = "Aaron Harbin, Daniel Tebor"
 __email__       = "solarvehicleteam@kennesaw.edu"
 __status__      = "Development"
@@ -28,6 +28,3 @@ def transmitString(tString):
 
     # Should be as simple as using this command to recieve
     #print(rfm9x.receive(timeout=5.0)) # this command will wait 5 seconds to try and recieve a packet before timing out.
-    
-if __name__ == '__main__':
-    transmitString(input('Enter the string to transmit: '))

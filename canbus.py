@@ -7,7 +7,7 @@ __copyright__   = "Copyright 2022 Solar Vehicle Team at KSU"
 __credits__     = ["Aaron Harbin, Daniel Tebor"]
 
 __license__     = "GPL"
-__version__     = "1.0.4"
+__version__     = "1.0.5"
 __maintainer__  = "Aaron Harbin, Daniel Tebor"
 __email__       = "solarvehicleteam@kennesaw.edu"
 __status__      = "Development"
@@ -40,12 +40,14 @@ class CANBus(Thread):
         "15:Pi_Code_Error"
     ]
 
-    def __init__(self):
-        Thread.__init__(self, name = self.THREAD_NAME)
-        self._stop = Event()
+    def __init__(self, stop_: Event):
+        Thread.__init__(self, name = self.THREAD_NAME, daemon = True)
+        self._stop_ = stop_
 
-        os.system('sudo ip link set can0 type can bitrate 500000') # Creates the canbus interface.
-        os.system('sudo ifconfig can0 up') # Sarts the canbus interface.
+        os.system('sudo ip link set can0 type can bitrate 500000') # Create canbus network interface.
+        #os.system('sudo ip link set can0 type vcan bitrate 500000') # Dev.
+        os.system('sudo ifconfig can0 up') # Sart canbus network interface.
+        #TODO: Fix this to work with python-can 4.1.0
         self._canbus = can.interface.Bus(interface = 'socketcan', channel = 'can0', baudrate = 500000)
         
         self._gear = 1
@@ -74,51 +76,46 @@ class CANBus(Thread):
         self._solar_volts_out = -1
 
     def run(self):
-        print(self.name + ' started')
-
         # Timeout if the canbus is unresponsive.
         RECV_TIMEOUT = 10
 
-        # These are motor controller packets about the motor and motor controller.
+        # Motor controller packets for motor and motor controller.
         MOTOR_DATA_ID1 = 217128575
         MOTOR_DATA_ID2 = 404 # Don't know
 
-        # These are BMS data packets about the battery.
+        # BMS data packets for battery.
         BATT_DATA_ID1 = 1712
         BATT_DATA_ID2 = 1713
 
-        # These are MPPT packets about the solar array.
-        """
-            We don't know the packet IDs for the MPPTs yet because they're variable
-            and we need to test it wired up with the full system.
-        """
+        # MPPT packets for solar array.
+        # TODO: Determine IDs
         SOLAR_DATA_ID1 = 404 # Don't know
         SOLAR_DATA_ID2 = 404 # Don't know
         SOLAR_DATA_ID3 = 404 # Don't know
 
-        while self._stop.is_set():
-            data_found = 0
-        
-            while data_found < 7 and not self._stop.is_set():
+        while self._stop_.is_set():
+            packets_found = 0
+            
+            # TODO: Fix way message is read in to work with python-can 4.1.0
+            while packets_found < 7 and not self._stop_.is_set():
                 msg = self._canbus.recv(RECV_TIMEOUT)
                 if (msg.arbitration_id == MOTOR_DATA_ID1):
-                    data_found += 1
-                    # This packets gives _mph and error codes
-                    # I'm going to do my best to estimate the MPH but
-                    # we're going to have to get more information from mechanical
-                    # for this to be more exact
+                    packets_found += 1
+                    
+                    # This packet gives MPH and error codes.
+                    # More info needed from mechanical for accurate MPH.
                     motor_rpm = ((msg[1] * 256) + msg.data[0]) / 10
 
-                    # 14 teeth on the motor sprocket
-                    # 47 teeth on the swing arm sprocket
-                    # 0.3617 ratio
+                    # 14 teeth on motor sprocket.
+                    # 47 teeth on swing arm sprocket.
+                    # = 0.3617 ratio.
                     wheel_rpm = motor_rpm * 0.3617
 
                     # RPM to Linear Velocity formula
                     # v = r × RPM × 0.10472
                     self._mph = 0.3048 * wheel_rpm * 0.10472
 
-                    # Reset Error Codes
+                    # Reset error codes.
                     self._error_code_readout = ""
 
                     # Error codes 1
@@ -140,7 +137,7 @@ class CANBus(Thread):
                     self._error_code_readout = self._error_code_readout[0:-2]
 
                 elif (msg.arbitration_id == MOTOR_DATA_ID2):
-                    data_found += 1
+                    packets_found += 1
                     # TODO here:
                     # - Read Controller temperature (self._kelly_motor_temp)
                     # - Read Motor temperature (self._kelly_controller_temp)
@@ -148,13 +145,13 @@ class CANBus(Thread):
                     # - Verify forward and backward with status of command (msg[4])
 
                 elif (msg.arbitration_id == BATT_DATA_ID1):
-                    data_found += 1
+                    packets_found += 1
                     self._batt_amps = msg.data[1]
                     self._batt_volts = msg.data[3]
                     self._batt_charge = msg.data[5]
 
                 elif (msg.arbitration_id == BATT_DATA_ID2):
-                    data_found += 1
+                    packets_found += 1
                     self._batt_amps = msg.data[0]
                     self._batt_volts = msg.data[1]
                     self._batt_charge = msg.data[2]
@@ -162,23 +159,19 @@ class CANBus(Thread):
                     self._batt_charge = msg.data[4]
 
                 elif (msg.arbitration_id == SOLAR_DATA_ID1):
-                    data_found += 1
+                    packets_found += 1
                     # This packet gives _solar_amps_in and _solar_volts_in
-                    # IMPLEMENTATION NEEDED
+                    # TODO: IMPLEMENTATION
 
                 elif (msg.arbitration_id == SOLAR_DATA_ID2):
-                    data_found += 1
+                    packets_found += 1
                     # This packet gives _solar_volts_out
-                    # IMPLEMENTATION NEEDED
+                    # TODO: IMPLEMENTATION NEEDED
 
                 elif (msg.arbitration_id == SOLAR_DATA_ID3):
-                    data_found += 1
-                    # This packet gives _solar_pcb_temp and _solar_mosfet_temp
+                    packets_found += 1
+                    # TODO: This packet gives _solar_pcb_temp and _solar_mosfet_temp
                     # IMPLEMENTATION NEEDED
-
-    def stop(self):
-        print('Shutting down ' + self.name)
-        self._stop.set()
 
     @property
     def data(self):

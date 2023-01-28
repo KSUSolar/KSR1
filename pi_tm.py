@@ -7,17 +7,21 @@ __copyright__   = "Copyright 2022 Solar Vehicle Team at KSU"
 __credits__     = ["Aaron Harbin, Daniel Tebor"]
 
 __license__     = "GPL"
-__version__     = "1.0.4"
+__version__     = "1.0.5"
 __maintainer__  = "Aaron Harbin, Daniel Tebor"
 __email__       = "solarvehicleteam@kennesaw.edu"
 __status__      = "Development"
 
-import datetime
-
+from datetime import datetime
 from gpiozero import CPUTemperature
 
 def temp():
-    return CPUTemperature.temperature
+    try:
+        cpu = CPUTemperature()
+        return cpu.temperature
+    except:
+        return 0
+
 
 def current_date_ymd():
     return datetime.now().strftime('%y-%m-%d')
