@@ -17,6 +17,7 @@ This piece of software designed to provide a dashboard to drivers of the solar v
 * tkinter
 
 ### Software Requirements
+* Python 3.10 or later
 * python3-tk
 * RPi.GPIO
 
