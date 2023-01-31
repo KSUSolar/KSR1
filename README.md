@@ -19,6 +19,7 @@ This piece of software designed to provide a dashboard to drivers of the solar v
 * Python 3.10 or later
 * python3-tk
 * RPi.GPIO
+* xcb
 
 ### Pip Modules
 * python-can 4.1.0
