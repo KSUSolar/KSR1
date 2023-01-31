@@ -15,6 +15,7 @@ This piece of software designed to provide a dashboard to drivers of the solar v
 * Raspberry Pi
 
 ### Software Requirements
+* libgl1
 * Python 3.10 or later
 * python3-tk
 * RPi.GPIO
@@ -22,7 +23,7 @@ This piece of software designed to provide a dashboard to drivers of the solar v
 ### Pip Modules
 * python-can 4.1.0
 * gpiozero
-* tkinter
+* PyQt5
 
 ## How to Contribute
 More information about KSU Solar Vehicle Team can be found at: https://owllife.kennesaw.edu/organization/solarvehicle and https://solarvehicleteam-ksu.square.site.
