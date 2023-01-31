@@ -7,7 +7,7 @@ __copyright__   = "Copyright 2022 Solar Vehicle Team at KSU"
 __credits__     = ["Aaron Harbin, Daniel Tebor"]
 
 __license__     = "GPL"
-__version__     = "1.0.5"
+__version__     = "1.0.6"
 __maintainer__  = "Aaron Harbin, Daniel Tebor"
 __email__       = "solarvehicleteam@kennesaw.edu"
 __status__      = "Development"
@@ -15,10 +15,12 @@ __status__      = "Development"
 import can
 import os
 
-from threading import Event, Thread
+from threading import Thread
+
+from daemon.ksr_daemon import KSRDaemon
 
 
-class CANBus(Thread):
+class CANBus(Thread, KSRDaemon):
     THREAD_NAME = 'CANBus'
 
     ERROR_CODES = [
@@ -40,15 +42,16 @@ class CANBus(Thread):
         "15:Pi_Code_Error"
     ]
 
-    def __init__(self, stop_: Event):
-        Thread.__init__(self, name = self.THREAD_NAME, daemon = True)
-        self._stop_ = stop_
+    _instance = None
+    
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super(CANBus, cls).__new__(cls)
+        return cls._instance
 
-        os.system('sudo ip link set can0 type can bitrate 500000') # Create canbus network interface.
-        #os.system('sudo ip link set can0 type vcan bitrate 500000') # Dev.
-        os.system('sudo ifconfig can0 up') # Sart canbus network interface.
-        #TODO: Fix this to work with python-can 4.1.0
-        self._canbus = can.interface.Bus(interface = 'socketcan', channel = 'can0', baudrate = 500000)
+    def __init__(self):
+        Thread.__init__(self, name = self.THREAD_NAME, daemon = True)
+        KSRDaemon.__init__(self, self.THREAD_NAME)
         
         self._gear = 1
 
@@ -74,6 +77,10 @@ class CANBus(Thread):
         self._solar_amps_in = -1
         self._solar_volts_in = -1
         self._solar_volts_out = -1
+        
+        os.system('sudo ip link set can0 type can bitrate 500000') # Create canbus network interface.
+        #os.system('sudo ip link set can0 type vcan bitrate 500000') # Dev.
+        os.system('sudo ip link set up can0') # Sart canbus network interface.
 
     def run(self):
         # Timeout if the canbus is unresponsive.
@@ -93,12 +100,22 @@ class CANBus(Thread):
         SOLAR_DATA_ID2 = 404 # Don't know
         SOLAR_DATA_ID3 = 404 # Don't know
 
-        while self._stop_.is_set():
+        #TODO: Fix this to work with python-can 4.1.0
+        try:
+            canbus_intf = can.interface.Bus(interface = 'socketcan', 
+                                            channel = 'can0', 
+                                            baudrate = 500000)
+        except OSError as err:
+            #print('Unable to initialize canbus interface: ' + err.strerror
+            #    + '\nShutting down CANBus daemon' + '\nDone')
+            return
+
+        while self._stop.is_set():
             packets_found = 0
             
             # TODO: Fix way message is read in to work with python-can 4.1.0
-            while packets_found < 7 and not self._stop_.is_set():
-                msg = self._canbus.recv(RECV_TIMEOUT)
+            while packets_found < 7 and not self._stop.is_set():
+                msg = canbus_intf.recv(RECV_TIMEOUT)
                 if (msg.arbitration_id == MOTOR_DATA_ID1):
                     packets_found += 1
                     

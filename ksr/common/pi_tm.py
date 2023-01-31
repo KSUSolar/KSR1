@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 
-"""pi_tel.py: Raspberry pi telemetry functions."""
+"""pi_tm.py: Raspberry pi telemetry functions."""
 
 __author__      = "Daniel Tebor"
 __copyright__   = "Copyright 2022 Solar Vehicle Team at KSU"
 __credits__     = ["Aaron Harbin, Daniel Tebor"]
 
 __license__     = "GPL"
-__version__     = "1.0.5"
+__version__     = "1.0.6"
 __maintainer__  = "Aaron Harbin, Daniel Tebor"
 __email__       = "solarvehicleteam@kennesaw.edu"
 __status__      = "Development"
@@ -21,7 +21,6 @@ def temp():
         return cpu.temperature
     except:
         return 0
-
 
 def current_date_ymd():
     return datetime.now().strftime('%y-%m-%d')
