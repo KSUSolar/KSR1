@@ -28,4 +28,4 @@ This piece of software designed to provide a dashboard to drivers of the solar v
 * Daniel Tebor
 
 ## How to Contribute
-More information about KSU Solar Vehicle Team can be found at: [link]https://owllife.kennesaw.edu/organization/solarvehicle and [link]https://solarvehicleteam-ksu.square.site
+More information about KSU Solar Vehicle Team can be found at: https://owllife.kennesaw.edu/organization/solarvehicle and https://solarvehicleteam-ksu.square.site.
