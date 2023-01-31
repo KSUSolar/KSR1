@@ -1,11 +1,31 @@
 # KSR1
 Data Logging, Dashboard, and Wireless Communication for the KSR 
 
-# canBus Hat Setup
-In the very bottom of the /boot/config.txt file put:
-dtoverlay=spi1-2cs
-dtoverlay=mcp2515-can0, oscillator8000000, interrupt=25, spimaxfrequency=1000000
+## Description
+This piece of software designed to provide a dashboard to drivers of the solar vehicle as well as store and transmit useful telemetry.
 
-spi1-2cs = creates the spi1 interface with 2 chip selects
-mcp2515-can0 = sets up the canhat with the correct library at a network interface.
-You can check it worked by using "ifconfig can0" in the terminal
+## Goals
+* Create a dashboard for the vehicle
+* Log vehicle telemetry
+* Transmit vehicle telemetry over radio
+* Control vehicle tail lights
+
+## Compilation Requirements
+### Pip Modules
+* python-can 4.1.0
+* gpiozero
+* tkinter
+
+### Software Requirements
+* python3-tk
+* RPi.GPIO
+
+### Hardware Requirements
+* Raspberry Pi
+
+## Contributors
+* Aaron Harbin
+* Daniel Tebor
+
+## How to Contribute
+More information about KSU Solar Vehicle Team can be found at: [link]https://owllife.kennesaw.edu/organization/solarvehicle and [link]https://solarvehicleteam-ksu.square.site
