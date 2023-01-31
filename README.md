@@ -11,18 +11,18 @@ This piece of software designed to provide a dashboard to drivers of the solar v
 * Control vehicle tail lights
 
 ## Compilation Requirements
-### Pip Modules
-* python-can 4.1.0
-* gpiozero
-* tkinter
+### Hardware Requirements
+* Raspberry Pi
 
 ### Software Requirements
 * Python 3.10 or later
 * python3-tk
 * RPi.GPIO
 
-### Hardware Requirements
-* Raspberry Pi
+### Pip Modules
+* python-can 4.1.0
+* gpiozero
+* tkinter
 
 ## Contributors
 * Aaron Harbin
