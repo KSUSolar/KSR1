@@ -11,21 +11,20 @@ This piece of software designed to provide a dashboard to drivers of the solar v
 * Control vehicle tail lights
 
 ## Compilation Requirements
-### Pip Modules
-* python-can 4.1.0
-* gpiozero
-* tkinter
-
-### Software Requirements
-* python3-tk
-* RPi.GPIO
-
 ### Hardware Requirements
 * Raspberry Pi
 
-## Contributors
-* Aaron Harbin
-* Daniel Tebor
+### Software Requirements
+* libgl1
+* Python 3.10 or later
+* python3-tk
+* RPi.GPIO
+* xcb
+
+### Pip Modules
+* python-can 4.1.0
+* gpiozero
+* PyQt5
 
 ## How to Contribute
 More information about KSU Solar Vehicle Team can be found at: https://owllife.kennesaw.edu/organization/solarvehicle and https://solarvehicleteam-ksu.square.site.
