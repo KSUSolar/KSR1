@@ -14,43 +14,52 @@ __status__      = "Development"
 
 import csv
 import os
-import time
 import common.pi_tm as pi
 
+from common.singleton import Singleton
 from daemon.canbus import CANBus
 from daemon.ksr_daemon import KSRDaemon
 from threading import Thread
 
 
-class Logger(Thread, KSRDaemon):
-    THREAD_NAME = 'Logger'
-    SAVE_INTRV_MINS = 5 # Approximately accurate.
+class Logger(Thread, KSRDaemon, metaclass = Singleton):
+    _THREAD_NAME = 'Logger'
+    _SAVE_INTRV_MINS = 5 # Approximately accurate.
 
-    _instance = None
-    
-    def __new__(cls, *args, **kwargs):
-        if cls._instance is None:
-            cls._instance = super(Logger, cls).__new__(cls)
-            cls._instance.__init__(*args, **kwargs)
-        return cls._instance
-
-    def __init__(self, canbus: CANBus):
-        Thread.__init__(self, name = self.THREAD_NAME, daemon = True)
-        KSRDaemon.__init__(self, self.THREAD_NAME)
-        self._canbus = canbus
+    def __init__(self):
+        Thread.__init__(self, name = self._THREAD_NAME, daemon = True)
+        KSRDaemon.__init__(self)
+        
+        self._canbus = CANBus()
+        
+        # Check that CANBus is fully initialized.
+        self._stop_.set()
+        while self._stop_.is_set():
+            if self._canbus.is_fully_initialized:
+                self._stop_.clear()
+        
+        if self._canbus.is_disabled:
+            print(self.name + ' daemon disabled: ' 
+                + self.name + ' dependent on ' + self._canbus.name + ' daemon')
+            self.is_disabled = True
+            
+        self.is_fully_initialized = True
 
     def run(self):
+        if self.is_disabled:
+            print(self.name + ' disabled. Stopping')
+            return
+        
         date = pi.current_date_ymd()
         start_time = pi.current_time_hms()#[:-3]
         log_name = date + '_' + start_time + '.csv'
         log_dir = os.path.join(os.path.dirname(__file__), '..', '..', 'logs', log_name)
-
+        
         with open(log_dir, 'w') as log:
             writer = csv.writer(log)
             writer.writerow(['Timestamp', 'Pi Temp']
                 + list(self._canbus.data.keys())) # Canbus headers.
             log.close()
-        time.sleep(1)
 
         # Write new line to csv every second. Save csv ~ every SAVE_INTRV_MINS mins.
         # Save and break loop if CANBus deamon is interrupted.
@@ -60,7 +69,7 @@ class Logger(Thread, KSRDaemon):
             with open(log_dir, 'a') as log:
                 writer = csv.writer(log)
                 
-                while num_seconds < self.SAVE_INTRV_MINS * 60 and not self._stop_.is_set():
+                while num_seconds < self._SAVE_INTRV_MINS * 60 and not self._stop_.is_set():
                     if not self._canbus.is_alive():
                         writer.writerow([self._canbus.name + ' daemon interrupt'])
                         self._stop_.set()

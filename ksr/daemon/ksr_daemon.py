@@ -12,13 +12,16 @@ __maintainer__  = "Aaron Harbin, Daniel Tebor"
 __email__       = "solarvehicleteam@kennesaw.edu"
 __status__      = "Development"
 
+#from abc import ABC, abstractmethod
 from threading import Event
 
 
 class KSRDaemon():
-    def __init__(self, name: str):
-        self.name = name
+    def __init__(self):
+        self.is_disabled = False
+        self.is_fully_initialized = False
         self._stop_ = Event()
         
+    #@abstractmethod
     def stop(self):
         self._stop_.set()

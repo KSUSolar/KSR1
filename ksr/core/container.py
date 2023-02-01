@@ -20,9 +20,8 @@ except ImportError:
     import Mock.GPIO as GPIO
 import sys
 
-from common.event import Event_
 from common.gpio_pin import GPIOPin
-from core import event_handler
+from common.singleton import Singleton
 from core.gui import GUI
 from daemon.event_listener import EventListener
 from daemon.canbus import CANBus
@@ -31,24 +30,17 @@ from PyQt5.QtWidgets import QApplication
 from threading import Event
 
 
-class Container:
-    _instance = None
-    
-    def __new__(cls):
-        if cls._instance is None:
-            cls._instance = super(Container, cls).__new__(cls)
-        return cls._instance
-    
+class Container(metaclass = Singleton):
     def __init__(self):
         self._stop = Event()
         
         self.canbus = CANBus()
-        self.logger = Logger(self.canbus)
+        self.logger = Logger()
         #self._app = QApplication(sys.argv)
         #self.gui = GUI(self.canbus)
-        self.event_listener = EventListener(self.canbus)
+        self.event_listener = EventListener()
 
-        self._threads = [
+        self._daemons = [
             self.event_listener,
             self.canbus,
             self.logger
@@ -68,10 +60,11 @@ class Container:
     def start(self):
         print('Booting up KSR')
     
-        print('\tStarting threads')
-        for t in self._threads:
-            t.start()
-            print('\t\t' + t.name + ' started')
+        print('\tStarting daemons')
+        for d in self._daemons:
+            if not d.is_disabled:
+                d.start()
+                print('\t\t' + d.name + ' started')
         print('Done')
         
         """
@@ -89,14 +82,12 @@ class Container:
         
         print('Exiting KSR')
         
-        print('\tClosing threads')
-        for t in reversed(self._threads):
-            print('\t\t' + t.name + ' stopping')
-            t.stop()
-            try:
-                t.join()
-            except Exception as e:
-                print(e)
+        print('\tStopping daemons')
+        for d in reversed(self._daemons):
+            if d.is_alive():
+                d.stop()
+                d.join()
+                print('\t\t' + d.name + ' stopped')
         
         print('Done')
         sys.exit(0)   

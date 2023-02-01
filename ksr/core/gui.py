@@ -12,7 +12,7 @@ __maintainer__  = "Aaron Harbin, Daniel Tebor"
 __email__       = "solarvehicleteam@kennesaw.edu"
 __status__      = "Development"
 
-from common import pi_tm
+from common import pi_tm as pi
 from common.event import Event_
 from daemon.canbus import CANBus
 from core import event_handler
@@ -166,7 +166,7 @@ class GUI(QMainWindow):
             )
 
         self._pi_temp_display = QLabel(
-            'Pi: ' + str(pi_tm.temp()) + '°C')
+            'Pi: ' + str(pi.temp()) + '°C')
         self._pi_temp_display.setStyleSheet(
             'color: white;'
             'font-family: tahoma, geneva, sans-serif;'
@@ -238,7 +238,7 @@ class GUI(QMainWindow):
         self._update_mph(self._canbus.mph)
         self._update_temps(self._canbus.batt_temp_avg,
             self._canbus.solar_pcb_temp,
-            pi_tm.CPUTemperature
+            pi.CPUTemperature
             )
         self._update_bpsfault_warning(self._canbus.bpsfault)
         

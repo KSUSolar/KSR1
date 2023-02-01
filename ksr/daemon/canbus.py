@@ -18,12 +18,30 @@ import os
 from threading import Thread
 
 from daemon.ksr_daemon import KSRDaemon
+from common.singleton import Singleton
 
 
-class CANBus(Thread, KSRDaemon):
-    THREAD_NAME = 'CANBus'
+class CANBus(Thread, KSRDaemon, metaclass = Singleton):
+    _THREAD_NAME = 'CANBus'
 
-    ERROR_CODES = [
+    # Timeout if the canbus is unresponsive.
+    _RECV_TIMEOUT = 10
+
+    # Motor controller packets for motor and motor controller.
+    _MOTOR_DATA_ID1 = 217128575
+    _MOTOR_DATA_ID2 = 404 # Don't know
+
+    # BMS data packets for battery.
+    _BATT_DATA_ID1 = 1712
+    _BATT_DATA_ID2 = 1713
+
+    # MPPT packets for solar array.
+    # TODO: Determine IDs
+    _SOLAR_DATA_ID1 = 404 # Don't know
+    _SOLAR_DATA_ID2 = 404 # Don't know
+    _SOLAR_DATA_ID3 = 404 # Don't know
+
+    _ERROR_CODES = [
         "0:Identification",
         "1:Over Volt",
         "2:Low Volt",
@@ -42,16 +60,9 @@ class CANBus(Thread, KSRDaemon):
         "15:Pi_Code_Error"
     ]
 
-    _instance = None
-    
-    def __new__(cls):
-        if cls._instance is None:
-            cls._instance = super(CANBus, cls).__new__(cls)
-        return cls._instance
-
     def __init__(self):
-        Thread.__init__(self, name = self.THREAD_NAME, daemon = True)
-        KSRDaemon.__init__(self, self.THREAD_NAME)
+        Thread.__init__(self, name = self._THREAD_NAME, daemon = True)
+        KSRDaemon.__init__(self)
         
         self._gear = 1
 
@@ -81,42 +92,31 @@ class CANBus(Thread, KSRDaemon):
         os.system('sudo ip link set can0 type can bitrate 500000') # Create canbus network interface.
         #os.system('sudo ip link set can0 type vcan bitrate 500000') # Dev.
         os.system('sudo ip link set up can0') # Sart canbus network interface.
-
-    def run(self):
-        # Timeout if the canbus is unresponsive.
-        RECV_TIMEOUT = 10
-
-        # Motor controller packets for motor and motor controller.
-        MOTOR_DATA_ID1 = 217128575
-        MOTOR_DATA_ID2 = 404 # Don't know
-
-        # BMS data packets for battery.
-        BATT_DATA_ID1 = 1712
-        BATT_DATA_ID2 = 1713
-
-        # MPPT packets for solar array.
-        # TODO: Determine IDs
-        SOLAR_DATA_ID1 = 404 # Don't know
-        SOLAR_DATA_ID2 = 404 # Don't know
-        SOLAR_DATA_ID3 = 404 # Don't know
-
+        
         #TODO: Fix this to work with python-can 4.1.0
         try:
-            canbus_intf = can.interface.Bus(interface = 'socketcan', 
+            self._canbus_intf = can.interface.Bus(interface = 'socketcan', 
                                             channel = 'can0', 
                                             baudrate = 500000)
         except OSError as err:
-            #print('Unable to initialize canbus interface: ' + err.strerror
-            #    + '\nShutting down CANBus daemon' + '\nDone')
-            return
+            print('Unable to initialize canbus interface: ' + err.strerror
+                + '\n' + self.name + ' daemon disabled')
+            self.is_disabled = True
+            
+        self.is_fully_initialized = True
 
-        while self._stop.is_set():
+    def run(self):
+        if self.is_disabled:
+            print(self.name + ' disabled. Stopping')
+            return
+        
+        while not self._stop_.is_set():
             packets_found = 0
             
             # TODO: Fix way message is read in to work with python-can 4.1.0
-            while packets_found < 7 and not self._stop.is_set():
-                msg = canbus_intf.recv(RECV_TIMEOUT)
-                if (msg.arbitration_id == MOTOR_DATA_ID1):
+            while packets_found < 7 and not self._stop_.is_set():
+                msg = self._canbus_intf.recv(self._RECV_TIMEOUT)
+                if (msg.arbitration_id == self._MOTOR_DATA_ID1):
                     packets_found += 1
                     
                     # This packet gives MPH and error codes.
@@ -140,7 +140,7 @@ class CANBus(Thread, KSRDaemon):
                     i = 7
                     while i >= 0:
                         if (error_code1[i] == "1"):
-                            self._error_code_readout += self.DEF_ERROR_CODES[(i-7)*-1] + ", "
+                            self._error_code_readout += self._ERROR_CODES[(i-7)*-1] + ", "
                         i -= 1
                     
                     # Error codes 2
@@ -148,12 +148,12 @@ class CANBus(Thread, KSRDaemon):
                     error_code2 = bin(msg.data[7])[2:].zfill(8)
                     while i >= 0:
                         if (error_code2[i] == "1"):
-                            self._error_code_readout += self.DEF_ERROR_CODES[(i-15)*-1] + ", "
+                            self._error_code_readout += self._ERROR_CODES[(i-15)*-1] + ", "
                         i -= 1
                     
                     self._error_code_readout = self._error_code_readout[0:-2]
 
-                elif (msg.arbitration_id == MOTOR_DATA_ID2):
+                elif (msg.arbitration_id == self._MOTOR_DATA_ID2):
                     packets_found += 1
                     # TODO here:
                     # - Read Controller temperature (self._kelly_motor_temp)
@@ -161,13 +161,13 @@ class CANBus(Thread, KSRDaemon):
                     # - Read forward switch & backward switch (msg[5])
                     # - Verify forward and backward with status of command (msg[4])
 
-                elif (msg.arbitration_id == BATT_DATA_ID1):
+                elif (msg.arbitration_id == self._BATT_DATA_ID1):
                     packets_found += 1
                     self._batt_amps = msg.data[1]
                     self._batt_volts = msg.data[3]
                     self._batt_charge = msg.data[5]
 
-                elif (msg.arbitration_id == BATT_DATA_ID2):
+                elif (msg.arbitration_id == self._BATT_DATA_ID2):
                     packets_found += 1
                     self._batt_amps = msg.data[0]
                     self._batt_volts = msg.data[1]
@@ -175,17 +175,17 @@ class CANBus(Thread, KSRDaemon):
                     self._batt_charge = msg.data[3]
                     self._batt_charge = msg.data[4]
 
-                elif (msg.arbitration_id == SOLAR_DATA_ID1):
+                elif (msg.arbitration_id == self._SOLAR_DATA_ID1):
                     packets_found += 1
                     # This packet gives _solar_amps_in and _solar_volts_in
                     # TODO: IMPLEMENTATION
 
-                elif (msg.arbitration_id == SOLAR_DATA_ID2):
+                elif (msg.arbitration_id == self._SOLAR_DATA_ID2):
                     packets_found += 1
                     # This packet gives _solar_volts_out
                     # TODO: IMPLEMENTATION NEEDED
 
-                elif (msg.arbitration_id == SOLAR_DATA_ID3):
+                elif (msg.arbitration_id == self._SOLAR_DATA_ID3):
                     packets_found += 1
                     # TODO: This packet gives _solar_pcb_temp and _solar_mosfet_temp
                     # IMPLEMENTATION NEEDED

@@ -19,6 +19,7 @@ except ImportError:
 
 from common.event import Event_
 from common.gpio_pin import GPIOPin
+from common.singleton import Singleton
 from core import event_handler
 from core.light_controller import LightController
 from core.gui_dep import GUI
@@ -27,24 +28,15 @@ from daemon.ksr_daemon import KSRDaemon
 from threading import Thread
 
 
-class EventListener(Thread, KSRDaemon):
-    THREAD_NAME = 'EventListener'
+class EventListener(Thread, KSRDaemon, metaclass = Singleton):
+    _THREAD_NAME = 'EventListener'
     
-    _instance = None
-    
-    def __new__(cls, *args, **kwargs):
-        if cls._instance is None:
-            cls._instance = super(EventListener, cls).__new__(cls)
-            cls._instance.__init__(*args, **kwargs)
-        return cls._instance
-    
-    def __init__(self, canbus: CANBus):
-        Thread.__init__(self, name = self.THREAD_NAME, daemon = True)
-        KSRDaemon.__init__(self, self.THREAD_NAME)
-        self._canbus = canbus
-        #self._gui = gui
+    def __init__(self):
+        Thread.__init__(self, name = self._THREAD_NAME, daemon = True)
+        KSRDaemon.__init__(self)
     
     def run(self):
+        #canbus = CANBus()
         
         while not self._stop_.is_set():
             if GPIO.input(GPIOPin.HAZ_INPUT) == 1:
