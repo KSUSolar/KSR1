@@ -17,9 +17,8 @@ This piece of software designed to provide a dashboard to drivers of the solar v
 ### Software Requirements
 * libgl1
 * Python 3.10 or later
-* python3-tk
 * RPi.GPIO
-* xcb
+* xcb & X11
 
 ### Pip Modules
 * python-can 4.1.0
