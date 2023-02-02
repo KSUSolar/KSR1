@@ -28,5 +28,6 @@ class Event_(Enum):
     R_BLINKER_OFF = auto() # Condition for right blinker off met.
     HAZ_ON = auto() # Condition for hazard on met.
     HAZ_OFF = auto() # Condition for hazard off met.
+    BLINKERS_OFF = auto() # All blinkers off.
     
     HARDWARE_SHUTDOWN = auto() # Shutdown button pressed.

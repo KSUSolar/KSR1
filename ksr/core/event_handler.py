@@ -18,44 +18,41 @@ from common.event import Event_
 from core.gui_dep import GUI
 from concurrent.futures import ThreadPoolExecutor
 
+from core.light_controller import LightController
+
 _event_executor = ThreadPoolExecutor(max_workers = 8)
 
 def bind(event: Event_):
-    #if not threading.current_thread().name.startswith('Thread-'):
-    #    _event_executor.submit(bind, event)
-    #    return
     
     from core.container import Container
     container = Container()
     
-    match event:
-        case Event_.L_BLINKER_ON:
-            return
-        case Event_.L_BLINKER_OFF:
-            return
-        case Event_.R_BLINKER_ON:
-            return
-        case Event_.R_BLINKER_OFF:
-            return
-        case Event_.HAZ_ON:
-            return
-        case Event_.HAZ_OFF:
-            return
+    if event == Event_.BLINKERS_OFF:
+        LightController.stop_blinkers()
+    elif event == Event_.L_BLINKER_ON:
+        LightController.blink_left()
+    elif event == Event_.R_BLINKER_ON:
+        LightController.blink_right()
+    elif event == Event_.HAZ_ON:
+        LightController.blink_haz()
+    
+    elif event == Event_.KSR_SHUTDOWN:
+        container.stop()
+    elif event == Event_.GUI_CLOSE:
+        print('GUI closed')
+        bind(Event_.KSR_SHUTDOWN)
+    elif event == Event_.HARDWARE_SHUTDOWN:
+        #gui = GUI(None)
+        #gui.close()
+        return
         
-        case Event_.KSR_SHUTDOWN:
-            container.stop()
-        case Event_.GUI_CLOSE:
-            print('GUI closed')
-            bind(Event_.KSR_SHUTDOWN)
-        case Event_.HARDWARE_SHUTDOWN:
-            #gui = GUI(None)
-            #gui.close()
-            return
-            
-        case Event_.CANBUS_INTR:
-            print('Warning: CANBus daemon interrupt')
-            # TODO: Add GUI canbus warning.
-            return
-        case Event_.TRANSMITTER_INTR:
-            # TODO: Add GUI transmitter warning.
-            return
+    elif event == Event_.CANBUS_INTR:
+        print('Warning: CANBus daemon interrupt')
+        # TODO: Add GUI canbus warning.
+        return
+    elif event == Event_.TRANSMITTER_INTR:
+        # TODO: Add GUI transmitter warning.
+        return
+    
+def bind_async(event: Event_):
+    _event_executor.submit(bind, event)

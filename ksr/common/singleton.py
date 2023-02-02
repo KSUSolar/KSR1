@@ -13,12 +13,12 @@ __email__       = "solarvehicleteam@kennesaw.edu"
 __status__      = "Development"
 
 from threading import Lock
-from typing import Any, Dict
+from typing import Dict, Type
 
 
 class Singleton(type):
     _instances = {}
-    _locks: Dict[Any, Lock()] = {}
+    _locks: Dict[Type, Lock] = {}
     
     def __call__(cls, *args, **kwargs):
         if cls not in cls._instances: # Check lock is needed.

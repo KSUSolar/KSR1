@@ -14,8 +14,14 @@ __status__      = "Development"
 
 try:
     import RPi.GPIO as GPIO
-except ImportError and RuntimeError:
-    import Mock.GPIO as GPIO # Dev.
+except ImportError:
+    print('Missing module: RPi.GPIO\n'
+        + 'Defaulting to Mock.GPIO')
+    import Mock.GPIO as GPIO
+except RuntimeError:
+    print('Hardware is not Raspberry Pi\n'
+        + 'Defaulting to Mock.GPIO')
+    import Mock.GPIO as GPIO
 
 from common.event import Event_
 from common.gpio_pin import GPIOPin
@@ -30,25 +36,39 @@ class GPIOListener(KSRDaemon):
     
     def __init__(self):
         KSRDaemon.__init__(self, self._THREAD_NAME)
+        
+        GPIO.setmode(GPIO.BCM)
+
+        GPIO.setup(GPIOPin.SHUTDOWN.value, GPIO.IN, pull_up_down = GPIO.PUD_DOWN)
+        GPIO.setup(GPIOPin.L_BLINKER_INPUT.value, GPIO.IN, pull_up_down = GPIO.PUD_DOWN)
+        GPIO.setup(GPIOPin.R_BLINKER_INPUT.value, GPIO.IN, pull_up_down = GPIO.PUD_DOWN)
+        GPIO.setup(GPIOPin.HAZ_INPUT.value, GPIO.IN, pull_up_down = GPIO.PUD_DOWN)
+
+        GPIO.setup(GPIOPin.L_BLINKER_OUTPUT.value, GPIO.OUT)
+        GPIO.setup(GPIOPin.R_BLINKER_OUTPUT.value, GPIO.OUT)
+        GPIO.output(GPIOPin.L_BLINKER_OUTPUT.value, 0)
+        GPIO.output(GPIOPin.R_BLINKER_OUTPUT.value, 0)
     
     def run(self):
         while not self._stop_.is_set():
             if GPIO.input(GPIOPin.HAZ_INPUT) == 1:
-                if LightController.l_blinker_on:
-                    event_handler.bind(Event_.L_BLINKER_OFF)
-                if LightController.r_blinker_on:
-                    event_handler.bind(Event_.R_BLINKER_OFF)
-                event_handler.bind(Event_.HAZ_ON)
-            elif LightController.haz_on:
-                event_handler.bind(Event_.HAZ_OFF)
+                if LightController.is_l_blinker_on() or LightController.is_r_blinker_on():
+                    event_handler.bind(Event_.BLINKERS_OFF)
+                event_handler.bind_async(Event_.HAZ_ON)
+            elif LightController.is_haz_on():
+                event_handler.bind(Event_.BLINKERS_OFF)
+                
             if GPIO.input(GPIOPin.L_BLINKER_INPUT) == 1 and not LightController.haz_on:
-                event_handler.bind(Event_.L_BLINKER_ON)
-            elif LightController.l_blinker_on:
-                event_handler.bind(Event_.L_BLINKER_OFF)
+                event_handler.bind_asnyc(Event_.L_BLINKER_ON)
+            elif LightController.is_l_blinker_on():
+                event_handler.bind(Event_.BLINKERS_OFF)
+                
             if GPIO.input(GPIOPin.R_BLINKER_INPUT) == 1 and not LightController.haz_on:
-                event_handler.bind(Event_.R_BLINKER_ON)
-            elif LightController.r_blinker_on:
-                event_handler.bind(Event_.R_BLINKER_OFF)
+                event_handler.bind_async(Event_.R_BLINKER_ON)
+            elif LightController.is_r_blinker_on():
+                event_handler.bind(Event_.BLINKERS_OFF)
                 
             if GPIO.input(GPIOPin.SHUTDOWN) == 1:
-                event_handler.bind(Event_.HARDWARE_SHUTDOWN)
+                event_handler.bind_async(Event_.HARDWARE_SHUTDOWN)
+                
+            self._stop_.wait(1 / 60)

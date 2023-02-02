@@ -12,57 +12,35 @@ __maintainer__  = "Aaron Harbin, Daniel Tebor"
 __email__       = "solarvehicleteam@kennesaw.edu"
 __status__      = "Development"
 
-try:
-    import RPi.GPIO as GPIO
-except ImportError:
-    print('Missing module: RPi.GPIO\n'
-        + 'Defaulting to Mock.GPIO')
-    import Mock.GPIO as GPIO
-except RuntimeError:
-    print('Hardware is not Raspberry Pi\n'
-        + 'Defaulting to Mock.GPIO')
-    import Mock.GPIO as GPIO
 import sys
 from common.event import Event_
 
 from common.gpio_pin import GPIOPin
 from common.singleton import Singleton
 from core import event_handler
-from core.gui import GUI
+#from core.gui import GUI
 from daemons.gpio_listener import GPIOListener
 from daemons.canbus import CANBus
-from daemons.ksr_daemon import KSRDaemon
 from daemons.logger import Logger
-from PyQt5.QtWidgets import QApplication
+#from PyQt5.QtWidgets import QApplication
 from threading import Event
 
 
 class Container(metaclass = Singleton):
     def __init__(self):
         self._stop_ = Event()
+        #self._app = QApplication(sys.argv)
         
         self.canbus = CANBus()
         self.logger = Logger()
-        #self._app = QApplication(sys.argv)
-        #self.gui = GUI(self.canbus)
         self.event_listener = GPIOListener()
+        #self.gui = GUI(self.canbus)
 
         self._daemons = [
             self.event_listener,
             self.canbus,
             self.logger
         ]
-        
-        GPIO.setmode(GPIO.BCM)
-
-        GPIO.setup(GPIOPin.L_BLINKER_OUTPUT, GPIO.OUT)
-        GPIO.setup(GPIOPin.R_BLINKER_OUTPUT, GPIO.OUT)
-        GPIO.output(GPIOPin.L_BLINKER_OUTPUT, 0)
-        GPIO.output(GPIOPin.R_BLINKER_OUTPUT, 0)
-
-        GPIO.setup(GPIOPin.L_BLINKER_INPUT, GPIO.IN, pull_up_down = GPIO.PUD_DOWN)
-        GPIO.setup(GPIOPin.R_BLINKER_INPUT, GPIO.IN, pull_up_down = GPIO.PUD_DOWN)
-        GPIO.setup(GPIOPin.HAZ_INPUT, GPIO.IN, pull_up_down = GPIO.PUD_DOWN)
         
     def start(self):
         print('Booting up KSR')
@@ -80,13 +58,13 @@ class Container(metaclass = Singleton):
             self.gui.show_()
             while not self._stop.is_set():
                 self.gui._update()
-                self._stop.wait(0.01667)
+                self._stop_.wait(1 / 60)
         except KeyboardInterrupt:
             event_handler.bind(Event_.KSR_SHUTDOWN)
         """
 
         self._stop_.wait(10)
-        event_handler.bind(Event_.KSR_SHUTDOWN)
+        event_handler.bind_async(Event_.KSR_SHUTDOWN)
         
     def stop(self):
         print('Exiting KSR')
