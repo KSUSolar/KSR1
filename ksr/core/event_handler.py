@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3.10
 
 """main.py: Handles queued KSR events."""
 
@@ -12,6 +12,8 @@ __maintainer__  = "Aaron Harbin, Daniel Tebor"
 __email__       = "solarvehicleteam@kennesaw.edu"
 __status__      = "Development"
 
+import threading
+
 from common.event import Event_
 from core.gui_dep import GUI
 from concurrent.futures import ThreadPoolExecutor
@@ -19,6 +21,10 @@ from concurrent.futures import ThreadPoolExecutor
 _event_executor = ThreadPoolExecutor(max_workers = 8)
 
 def bind(event: Event_):
+    #if not threading.current_thread().name.startswith('Thread-'):
+    #    _event_executor.submit(bind, event)
+    #    return
+    
     from core.container import Container
     container = Container()
     
@@ -37,7 +43,7 @@ def bind(event: Event_):
             return
         
         case Event_.KSR_SHUTDOWN:
-            container.shutdown()
+            container.stop()
         case Event_.GUI_CLOSE:
             print('GUI closed')
             bind(Event_.KSR_SHUTDOWN)

@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3.10
 
 """pi_tm.py: Raspberry pi telemetry functions."""
 

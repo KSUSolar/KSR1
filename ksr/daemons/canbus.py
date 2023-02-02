@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3.10
 
 """canbus.py: Retrieves hardware telemetry using the 'can0' network interface."""
 
@@ -15,13 +15,13 @@ __status__      = "Development"
 import can
 import os
 
-from threading import Thread
-
-from daemon.ksr_daemon import KSRDaemon
+from daemons.ksr_daemon import KSRDaemon
 from common.singleton import Singleton
+from common.event import Event_
+from core import event_handler
 
 
-class CANBus(Thread, KSRDaemon, metaclass = Singleton):
+class CANBus(KSRDaemon):
     _THREAD_NAME = 'CANBus'
 
     # Timeout if the canbus is unresponsive.
@@ -61,8 +61,7 @@ class CANBus(Thread, KSRDaemon, metaclass = Singleton):
     ]
 
     def __init__(self):
-        Thread.__init__(self, name = self._THREAD_NAME, daemon = True)
-        KSRDaemon.__init__(self)
+        KSRDaemon.__init__(self, self._THREAD_NAME)
         
         self._gear = 1
 
@@ -101,94 +100,95 @@ class CANBus(Thread, KSRDaemon, metaclass = Singleton):
         except OSError as err:
             print('Unable to initialize canbus interface: ' + err.strerror
                 + '\n' + self.name + ' daemon disabled')
-            self.is_disabled = True
-            
-        self.is_fully_initialized = True
+            self.disable()
 
     def run(self):
-        if self.is_disabled:
-            print(self.name + ' disabled. Stopping')
-            return
-        
-        while not self._stop_.is_set():
-            packets_found = 0
+        try:
+            if self.is_disabled:
+                print(self.name + ' disabled. Stopping')
+                return
             
-            # TODO: Fix way message is read in to work with python-can 4.1.0
-            while packets_found < 7 and not self._stop_.is_set():
-                msg = self._canbus_intf.recv(self._RECV_TIMEOUT)
-                if (msg.arbitration_id == self._MOTOR_DATA_ID1):
-                    packets_found += 1
-                    
-                    # This packet gives MPH and error codes.
-                    # More info needed from mechanical for accurate MPH.
-                    motor_rpm = ((msg[1] * 256) + msg.data[0]) / 10
+            while not self._stop_.is_set():
+                packets_found = 0
+                
+                # TODO: Fix way message is read in to work with python-can 4.1.0
+                while packets_found < 7 and not self._stop_.is_set():
+                    msg = self._canbus_intf.recv(self._RECV_TIMEOUT)
+                    if (msg.arbitration_id == self._MOTOR_DATA_ID1):
+                        packets_found += 1
+                        
+                        # This packet gives MPH and error codes.
+                        # More info needed from mechanical for accurate MPH.
+                        motor_rpm = ((msg[1] * 256) + msg.data[0]) / 10
 
-                    # 14 teeth on motor sprocket.
-                    # 47 teeth on swing arm sprocket.
-                    # = 0.3617 ratio.
-                    wheel_rpm = motor_rpm * 0.3617
+                        # 14 teeth on motor sprocket.
+                        # 47 teeth on swing arm sprocket.
+                        # = 0.3617 ratio.
+                        wheel_rpm = motor_rpm * 0.3617
 
-                    # RPM to Linear Velocity formula
-                    # v = r × RPM × 0.10472
-                    self._mph = 0.3048 * wheel_rpm * 0.10472
+                        # RPM to Linear Velocity formula
+                        # v = r × RPM × 0.10472
+                        self._mph = 0.3048 * wheel_rpm * 0.10472
 
-                    # Reset error codes.
-                    self._error_code_readout = ""
+                        # Reset error codes.
+                        self._error_code_readout = ""
 
-                    # Error codes 1
-                    error_code1 = bin(msg.data[6])[2:].zfill(8)
-                    i = 7
-                    while i >= 0:
-                        if (error_code1[i] == "1"):
-                            self._error_code_readout += self._ERROR_CODES[(i-7)*-1] + ", "
-                        i -= 1
-                    
-                    # Error codes 2
-                    i = 7
-                    error_code2 = bin(msg.data[7])[2:].zfill(8)
-                    while i >= 0:
-                        if (error_code2[i] == "1"):
-                            self._error_code_readout += self._ERROR_CODES[(i-15)*-1] + ", "
-                        i -= 1
-                    
-                    self._error_code_readout = self._error_code_readout[0:-2]
+                        # Error codes 1
+                        error_code1 = bin(msg.data[6])[2:].zfill(8)
+                        i = 7
+                        while i >= 0:
+                            if (error_code1[i] == "1"):
+                                self._error_code_readout += self._ERROR_CODES[(i-7)*-1] + ", "
+                            i -= 1
+                        
+                        # Error codes 2
+                        i = 7
+                        error_code2 = bin(msg.data[7])[2:].zfill(8)
+                        while i >= 0:
+                            if (error_code2[i] == "1"):
+                                self._error_code_readout += self._ERROR_CODES[(i-15)*-1] + ", "
+                            i -= 1
+                        
+                        self._error_code_readout = self._error_code_readout[0:-2]
 
-                elif (msg.arbitration_id == self._MOTOR_DATA_ID2):
-                    packets_found += 1
-                    # TODO here:
-                    # - Read Controller temperature (self._kelly_motor_temp)
-                    # - Read Motor temperature (self._kelly_controller_temp)
-                    # - Read forward switch & backward switch (msg[5])
-                    # - Verify forward and backward with status of command (msg[4])
+                    elif (msg.arbitration_id == self._MOTOR_DATA_ID2):
+                        packets_found += 1
+                        # TODO here:
+                        # - Read Controller temperature (self._kelly_motor_temp)
+                        # - Read Motor temperature (self._kelly_controller_temp)
+                        # - Read forward switch & backward switch (msg[5])
+                        # - Verify forward and backward with status of command (msg[4])
 
-                elif (msg.arbitration_id == self._BATT_DATA_ID1):
-                    packets_found += 1
-                    self._batt_amps = msg.data[1]
-                    self._batt_volts = msg.data[3]
-                    self._batt_charge = msg.data[5]
+                    elif (msg.arbitration_id == self._BATT_DATA_ID1):
+                        packets_found += 1
+                        self._batt_amps = msg.data[1]
+                        self._batt_volts = msg.data[3]
+                        self._batt_charge = msg.data[5]
 
-                elif (msg.arbitration_id == self._BATT_DATA_ID2):
-                    packets_found += 1
-                    self._batt_amps = msg.data[0]
-                    self._batt_volts = msg.data[1]
-                    self._batt_charge = msg.data[2]
-                    self._batt_charge = msg.data[3]
-                    self._batt_charge = msg.data[4]
+                    elif (msg.arbitration_id == self._BATT_DATA_ID2):
+                        packets_found += 1
+                        self._batt_amps = msg.data[0]
+                        self._batt_volts = msg.data[1]
+                        self._batt_charge = msg.data[2]
+                        self._batt_charge = msg.data[3]
+                        self._batt_charge = msg.data[4]
 
-                elif (msg.arbitration_id == self._SOLAR_DATA_ID1):
-                    packets_found += 1
-                    # This packet gives _solar_amps_in and _solar_volts_in
-                    # TODO: IMPLEMENTATION
+                    elif (msg.arbitration_id == self._SOLAR_DATA_ID1):
+                        packets_found += 1
+                        # This packet gives _solar_amps_in and _solar_volts_in
+                        # TODO: IMPLEMENTATION
 
-                elif (msg.arbitration_id == self._SOLAR_DATA_ID2):
-                    packets_found += 1
-                    # This packet gives _solar_volts_out
-                    # TODO: IMPLEMENTATION NEEDED
+                    elif (msg.arbitration_id == self._SOLAR_DATA_ID2):
+                        packets_found += 1
+                        # This packet gives _solar_volts_out
+                        # TODO: IMPLEMENTATION NEEDED
 
-                elif (msg.arbitration_id == self._SOLAR_DATA_ID3):
-                    packets_found += 1
-                    # TODO: This packet gives _solar_pcb_temp and _solar_mosfet_temp
-                    # IMPLEMENTATION NEEDED
+                    elif (msg.arbitration_id == self._SOLAR_DATA_ID3):
+                        packets_found += 1
+                        # TODO: This packet gives _solar_pcb_temp and _solar_mosfet_temp
+                        # IMPLEMENTATION NEEDED
+        except Exception as err:
+            event_handler.bind(Event_.CANBUS_INTR)
 
     @property
     def data(self):

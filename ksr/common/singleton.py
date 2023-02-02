@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3.10
 
 """singleton.py: Singleton metaclass. Thread safe"""
 
@@ -11,7 +11,6 @@ __version__     = "1.0.6"
 __maintainer__  = "Aaron Harbin, Daniel Tebor"
 __email__       = "solarvehicleteam@kennesaw.edu"
 __status__      = "Development"
-
 
 from threading import Lock
 from typing import Any, Dict

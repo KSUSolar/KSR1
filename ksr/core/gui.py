@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3.10
 
 """gui.py: Car dashboard. Displays telemetry."""
 
@@ -14,9 +14,9 @@ __status__      = "Development"
 
 from common import pi_tm as pi
 from common.event import Event_
-from daemon.canbus import CANBus
 from core import event_handler
 from core.light_controller import LightController
+from daemons.canbus import CANBus
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *

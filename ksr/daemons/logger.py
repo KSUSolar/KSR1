@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3.10
 
 """logger.py: Logs canbus.py & pi telemetry data to M/D/Y_H:M:S.csv"""
 
@@ -17,33 +17,26 @@ import os
 import common.pi_tm as pi
 
 from common.singleton import Singleton
-from daemon.canbus import CANBus
-from daemon.ksr_daemon import KSRDaemon
-from threading import Thread
+from daemons.canbus import CANBus
+from daemons.ksr_daemon import KSRDaemon
 
 
-class Logger(Thread, KSRDaemon, metaclass = Singleton):
+class Logger(KSRDaemon):
     _THREAD_NAME = 'Logger'
     _SAVE_INTRV_MINS = 5 # Approximately accurate.
 
     def __init__(self):
-        Thread.__init__(self, name = self._THREAD_NAME, daemon = True)
-        KSRDaemon.__init__(self)
-        
+        KSRDaemon.__init__(self, self._THREAD_NAME)
+
         self._canbus = CANBus()
         
-        # Check that CANBus is fully initialized.
-        self._stop_.set()
-        while self._stop_.is_set():
-            if self._canbus.is_fully_initialized:
-                self._stop_.clear()
-        
+        # Disable if CANBus is disabled.
         if self._canbus.is_disabled:
             print(self.name + ' daemon disabled: ' 
                 + self.name + ' dependent on ' + self._canbus.name + ' daemon')
-            self.is_disabled = True
+            self.disable()
             
-        self.is_fully_initialized = True
+        self._is_initialized = True
 
     def run(self):
         if self.is_disabled:

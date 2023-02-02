@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3.10
 
 """gui.py: Car dashboard. Displays car telemetry."""
 
@@ -15,7 +15,6 @@ __status__      = "Development"
 import time
 import threading
 
-from daemon.canbus import CANBus
 from tkinter import *
 
 
@@ -28,8 +27,7 @@ class GUI():
     #        cls._instance.__init__(*args, **kwargs)
     #    return cls._instance
     
-    def __init__(self, canbus: CANBus):
-        self._canbus = canbus
+    def __init__(self):
         self.is_destroyed = False
         self._stop = threading.Event()
         

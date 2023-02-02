@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3.10
 
 """light_controller.py: Uses GPIO to control car blinkers."""
 
@@ -14,8 +14,8 @@ __status__      = "Development"
 
 try:
     import RPi.GPIO as GPIO
-except ImportError:
-    import Mock.GPIO as GPIO
+except ImportError and RuntimeError:
+    import Mock.GPIO as GPIO # Dev.
     
 from common.gpio_pin import GPIOPin
 from threading import Event

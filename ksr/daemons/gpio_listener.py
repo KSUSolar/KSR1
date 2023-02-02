@@ -1,6 +1,6 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3.10
 
-"""event_listener.py: Listens for GPIO & daemon state changes."""
+"""gpio_listener.py: Listens for GPIO state changes."""
 
 __author__      = "Daniel Tebor"
 __copyright__   = "Copyright 2022 Solar Vehicle Team at KSU"
@@ -14,7 +14,7 @@ __status__      = "Development"
 
 try:
     import RPi.GPIO as GPIO
-except ImportError:
+except ImportError and RuntimeError:
     import Mock.GPIO as GPIO # Dev.
 
 from common.event import Event_
@@ -22,22 +22,16 @@ from common.gpio_pin import GPIOPin
 from common.singleton import Singleton
 from core import event_handler
 from core.light_controller import LightController
-from core.gui_dep import GUI
-from daemon.canbus import CANBus
-from daemon.ksr_daemon import KSRDaemon
-from threading import Thread
+from daemons.ksr_daemon import KSRDaemon
 
 
-class EventListener(Thread, KSRDaemon, metaclass = Singleton):
-    _THREAD_NAME = 'EventListener'
+class GPIOListener(KSRDaemon):
+    _THREAD_NAME = 'GPIOListener'
     
     def __init__(self):
-        Thread.__init__(self, name = self._THREAD_NAME, daemon = True)
-        KSRDaemon.__init__(self)
+        KSRDaemon.__init__(self, self._THREAD_NAME)
     
     def run(self):
-        #canbus = CANBus()
-        
         while not self._stop_.is_set():
             if GPIO.input(GPIOPin.HAZ_INPUT) == 1:
                 if LightController.l_blinker_on:
@@ -58,11 +52,3 @@ class EventListener(Thread, KSRDaemon, metaclass = Singleton):
                 
             if GPIO.input(GPIOPin.SHUTDOWN) == 1:
                 event_handler.bind(Event_.HARDWARE_SHUTDOWN)
-                
-            #if self._gui.is_closed:
-            #    event_handler.bind(Event_.GUI_CLOSE)
-                
-            #if not self._canbus.is_alive():
-            #    event_handler.bind(Event_.CANBUS_INTR)
-                
-            # Implement Transmitter check.

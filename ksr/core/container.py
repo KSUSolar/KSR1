@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3.10
 
 """container.py: KSR wrapper. Stores daemons & GUI."""
 
@@ -18,27 +18,34 @@ except ImportError:
     print('Missing module: RPi.GPIO\n'
         + 'Defaulting to Mock.GPIO')
     import Mock.GPIO as GPIO
+except RuntimeError:
+    print('Hardware is not Raspberry Pi\n'
+        + 'Defaulting to Mock.GPIO')
+    import Mock.GPIO as GPIO
 import sys
+from common.event import Event_
 
 from common.gpio_pin import GPIOPin
 from common.singleton import Singleton
+from core import event_handler
 from core.gui import GUI
-from daemon.event_listener import EventListener
-from daemon.canbus import CANBus
-from daemon.logger import Logger
+from daemons.gpio_listener import GPIOListener
+from daemons.canbus import CANBus
+from daemons.ksr_daemon import KSRDaemon
+from daemons.logger import Logger
 from PyQt5.QtWidgets import QApplication
 from threading import Event
 
 
 class Container(metaclass = Singleton):
     def __init__(self):
-        self._stop = Event()
+        self._stop_ = Event()
         
         self.canbus = CANBus()
         self.logger = Logger()
         #self._app = QApplication(sys.argv)
         #self.gui = GUI(self.canbus)
-        self.event_listener = EventListener()
+        self.event_listener = GPIOListener()
 
         self._daemons = [
             self.event_listener,
@@ -78,9 +85,13 @@ class Container(metaclass = Singleton):
             event_handler.bind(Event_.KSR_SHUTDOWN)
         """
 
-        self._stop.wait(10)
+        self._stop_.wait(10)
+        event_handler.bind(Event_.KSR_SHUTDOWN)
         
+    def stop(self):
         print('Exiting KSR')
+        
+        self._stop_.set()
         
         print('\tStopping daemons')
         for d in reversed(self._daemons):
@@ -90,8 +101,4 @@ class Container(metaclass = Singleton):
                 print('\t\t' + d.name + ' stopped')
         
         print('Done')
-        sys.exit(0)   
-        
-    def stop(self):
-        self._stop.set()
-        
+        sys.exit(0)
