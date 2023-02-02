@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.10
+#!/usr/bin/env python3
 
 """canbus.py: Retrieves hardware telemetry using the 'can0' network interface."""
 

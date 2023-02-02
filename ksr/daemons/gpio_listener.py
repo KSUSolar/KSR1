@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.10
+#!/usr/bin/env python3
 
 """gpio_listener.py: Listens for GPIO state changes."""
 

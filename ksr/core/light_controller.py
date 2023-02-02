@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.10
+#!/usr/bin/env python3
 
 """light_controller.py: Uses GPIO to control car blinkers."""
 

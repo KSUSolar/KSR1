@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.10
+#!/usr/bin/env python3
 
 """logger.py: Logs canbus.py & pi telemetry data to M/D/Y_H:M:S.csv"""
 

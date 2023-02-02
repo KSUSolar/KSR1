@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.10
+#!/usr/bin/env python3
 
 """ksr.py: Main entrypoint for KSR program."""
 

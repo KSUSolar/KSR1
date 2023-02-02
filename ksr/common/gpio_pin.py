@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.10
+#!/usr/bin/env python3
 
 """gpio_pin.py: Values for used GPIO pins."""
 

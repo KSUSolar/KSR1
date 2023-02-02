@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.10
+#!/usr/bin/env python3
 
 """ksr_daemon.py: Superclass of all KSR deamon threads."""
 
