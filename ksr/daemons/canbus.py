@@ -29,7 +29,7 @@ class CANBus(KSRDaemon):
 
     # Motor controller packets for motor and motor controller.
     _MOTOR_DATA_ID1 = 217128575
-    _MOTOR_DATA_ID2 = 404 # Don't know
+    _MOTOR_DATA_ID2 = 217128831
 
     # BMS data packets for battery.
     _BATT_DATA_ID1 = 1712
@@ -88,7 +88,7 @@ class CANBus(KSRDaemon):
         self._solar_volts_in = -1
         self._solar_volts_out = -1
         
-        os.system('sudo ip link set can0 type can bitrate 500000') # Create canbus network interface.
+        os.system('sudo ip link set can0 type can bitrate 250000') # Create canbus network interface.
         #os.system('sudo ip link set can0 type vcan bitrate 500000') # Dev.
         os.system('sudo ip link set up can0') # Sart canbus network interface.
         
@@ -96,7 +96,7 @@ class CANBus(KSRDaemon):
         try:
             self._canbus_intf = can.interface.Bus(interface = 'socketcan', 
                                             channel = 'can0', 
-                                            baudrate = 500000)
+                                            baudrate = 250000)
         except OSError as err:
             print('Unable to initialize canbus interface: ' + err.strerror
                 + '\n' + self.name + ' daemon disabled')
