@@ -16,7 +16,18 @@ import csv
 import os
 import common.pi_tm as pi
 
-from common.singleton import Singleton
+try:
+    import RPi.GPIO as GPIO
+except ImportError:
+    print('Missing module: RPi.GPIO\n'
+        + 'Defaulting to Mock.GPIO')
+    import Mock.GPIO as GPIO
+except RuntimeError:
+    print('Hardware is not Raspberry Pi\n'
+        + 'Defaulting to Mock.GPIO')
+    import Mock.GPIO as GPIO
+
+from common.gpio_pin import GPIOPin
 from daemons.canbus import CANBus
 from daemons.ksr_daemon import KSRDaemon
 
@@ -42,6 +53,8 @@ class Logger(KSRDaemon):
         if self.is_disabled:
             print(self.name + ' disabled. Stopping')
             return
+        
+        GPIO.output(GPIOPin.LOGGER_IS_RUNNING, GPIO.HIGH)
         
         date = pi.current_date_ymd()
         start_time = pi.current_time_hms()#[:-3]
@@ -75,3 +88,5 @@ class Logger(KSRDaemon):
                     self._stop_.wait(1)
                     
                 log.close()
+                
+        GPIO.output(GPIOPin.LOGGER_IS_RUNNING, GPIO.LOW)

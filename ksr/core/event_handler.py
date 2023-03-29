@@ -12,9 +12,19 @@ __maintainer__  = "Aaron Harbin, Daniel Tebor"
 __email__       = "solarvehicleteam@kennesaw.edu"
 __status__      = "Development"
 
-import threading
+try:
+    import RPi.GPIO as GPIO
+except ImportError:
+    print('Missing module: RPi.GPIO\n'
+        + 'Defaulting to Mock.GPIO')
+    import Mock.GPIO as GPIO
+except RuntimeError:
+    print('Hardware is not Raspberry Pi\n'
+        + 'Defaulting to Mock.GPIO')
+    import Mock.GPIO as GPIO
 
 from common.event import Event_
+from common.gpio_pin import GPIOPin
 from core.gui_dep import GUI
 from concurrent.futures import ThreadPoolExecutor
 
@@ -47,6 +57,7 @@ def bind(event: Event_):
         return
         
     elif event == Event_.CANBUS_INTR:
+        GPIO.output(GPIOPin.CANBUS_IS_RUNNING, GPIO.LOW)
         print('Warning: CANBus daemon interrupt')
         # TODO: Add GUI canbus warning.
         return

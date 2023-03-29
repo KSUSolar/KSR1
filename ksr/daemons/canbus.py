@@ -15,9 +15,20 @@ __status__      = "Development"
 import can
 import os
 
+try:
+    import RPi.GPIO as GPIO
+except ImportError:
+    print('Missing module: RPi.GPIO\n'
+        + 'Defaulting to Mock.GPIO')
+    import Mock.GPIO as GPIO
+except RuntimeError:
+    print('Hardware is not Raspberry Pi\n'
+        + 'Defaulting to Mock.GPIO')
+    import Mock.GPIO as GPIO
+
 from daemons.ksr_daemon import KSRDaemon
-from common.singleton import Singleton
 from common.event import Event_
+from common.gpio_pin import GPIOPin
 from core import event_handler
 
 
@@ -108,6 +119,8 @@ class CANBus(KSRDaemon):
                 print(self.name + ' disabled. Stopping')
                 return
             
+            GPIO.output(GPIOPin.CANBUS_IS_RUNNING, GPIO.HIGH)
+            
             while not self._stop_.is_set():
                 packets_found = 0
                 
@@ -187,7 +200,9 @@ class CANBus(KSRDaemon):
                         packets_found += 1
                         # TODO: This packet gives _solar_pcb_temp and _solar_mosfet_temp
                         # IMPLEMENTATION NEEDED
-        except Exception as err:
+                        
+            GPIO.output(GPIOPin.CANBUS_IS_RUNNING, GPIO.LOW)
+        except Exception:
             event_handler.bind(Event_.CANBUS_INTR)
 
     @property

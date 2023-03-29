@@ -25,7 +25,6 @@ except RuntimeError:
 
 from common.event import Event_
 from common.gpio_pin import GPIOPin
-from common.singleton import Singleton
 from core import event_handler
 from core.light_controller import LightController
 from daemons.ksr_daemon import KSRDaemon
@@ -36,18 +35,6 @@ class GPIOListener(KSRDaemon):
     
     def __init__(self):
         KSRDaemon.__init__(self, self._THREAD_NAME)
-        
-        GPIO.setmode(GPIO.BCM)
-
-        GPIO.setup(GPIOPin.SHUTDOWN.value, GPIO.IN, pull_up_down = GPIO.PUD_DOWN)
-        GPIO.setup(GPIOPin.L_BLINKER_INPUT.value, GPIO.IN, pull_up_down = GPIO.PUD_DOWN)
-        GPIO.setup(GPIOPin.R_BLINKER_INPUT.value, GPIO.IN, pull_up_down = GPIO.PUD_DOWN)
-        GPIO.setup(GPIOPin.HAZ_INPUT.value, GPIO.IN, pull_up_down = GPIO.PUD_DOWN)
-
-        GPIO.setup(GPIOPin.L_BLINKER_OUTPUT.value, GPIO.OUT)
-        GPIO.setup(GPIOPin.R_BLINKER_OUTPUT.value, GPIO.OUT)
-        GPIO.output(GPIOPin.L_BLINKER_OUTPUT.value, 0)
-        GPIO.output(GPIOPin.R_BLINKER_OUTPUT.value, 0)
     
     def run(self):
         while not self._stop_.is_set():

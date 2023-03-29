@@ -17,6 +17,9 @@ from enum import Enum
 
 class GPIOPin(Enum):
     SHUTDOWN = 2
+    KSR_IS_RUNNING = 16
+    CANBUS_IS_RUNNING = 23
+    LOGGER_IS_RUNNING = 24
     
     L_BLINKER_INPUT = 27
     L_BLINKER_OUTPUT = 6

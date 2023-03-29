@@ -13,11 +13,23 @@ __email__       = "solarvehicleteam@kennesaw.edu"
 __status__      = "Development"
 
 import sys
-from common.event import Event_
 
+try:
+    import RPi.GPIO as GPIO
+except ImportError:
+    print('Missing module: RPi.GPIO\n'
+        + 'Defaulting to Mock.GPIO')
+    import Mock.GPIO as GPIO
+except RuntimeError:
+    print('Hardware is not Raspberry Pi\n'
+        + 'Defaulting to Mock.GPIO')
+    import Mock.GPIO as GPIO
+
+from common.event import Event_
 from common.gpio_pin import GPIOPin
 from common.singleton import Singleton
 from core import event_handler
+from core import gpio_init
 #from core.gui import GUI
 from daemons.gpio_listener import GPIOListener
 from daemons.canbus import CANBus
@@ -44,6 +56,10 @@ class Container(metaclass = Singleton):
         
     def start(self):
         print('Booting up KSR')
+        
+        print('Configuring GPIO')
+        gpio_init.configure_gpio()
+        GPIO.output(GPIOPin.KSR_IS_RUNNING, GPIO.HIGH)
     
         print('\tStarting daemons')
         for d in self._daemons:
@@ -51,19 +67,8 @@ class Container(metaclass = Singleton):
                 d.start()
                 print('\t\t' + d.name + ' started')
         print('Done')
-        
-        """
-        try:
-            print('\tOpening GUI window\nStartup finished')
-            self.gui.show_()
-            while not self._stop.is_set():
-                self.gui._update()
-                self._stop_.wait(1 / 60)
-        except KeyboardInterrupt:
-            event_handler.bind(Event_.KSR_SHUTDOWN)
-        """
 
-        self._stop_.wait(10)
+        self._stop_.wait(10) # Dev.
         event_handler.bind_async(Event_.KSR_SHUTDOWN)
         
     def stop(self):
@@ -78,5 +83,6 @@ class Container(metaclass = Singleton):
                 d.join()
                 print('\t\t' + d.name + ' stopped')
         
+        GPIO.output(GPIOPin.KSR_IS_RUNNING, GPIO.LOW)
         print('Done')
         sys.exit(0)
