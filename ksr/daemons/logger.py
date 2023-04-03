@@ -34,7 +34,7 @@ from daemons.ksr_daemon import KSRDaemon
 
 class Logger(KSRDaemon):
     _THREAD_NAME = 'Logger'
-    _SAVE_INTRV_MINS = 5 # Approximately accurate.
+    _SAVE_INTRV_MINS = 1 # Approximately accurate. #I'll change this back to 5 after testing
 
     def __init__(self):
         KSRDaemon.__init__(self, self._THREAD_NAME)
@@ -54,7 +54,7 @@ class Logger(KSRDaemon):
             print(self.name + ' disabled. Stopping')
             return
         
-        GPIO.output(GPIOPin.LOGGER_IS_RUNNING, GPIO.HIGH)
+        GPIO.output(GPIOPin.LOGGER_IS_RUNNING.value, GPIO.HIGH)
         
         date = pi.current_date_ymd()
         start_time = pi.current_time_hms()#[:-3]
@@ -89,4 +89,4 @@ class Logger(KSRDaemon):
                     
                 log.close()
                 
-        GPIO.output(GPIOPin.LOGGER_IS_RUNNING, GPIO.LOW)
+        GPIO.output(GPIOPin.LOGGER_IS_RUNNING.value, GPIO.LOW)

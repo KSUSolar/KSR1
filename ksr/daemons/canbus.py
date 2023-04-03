@@ -119,7 +119,7 @@ class CANBus(KSRDaemon):
                 print(self.name + ' disabled. Stopping')
                 return
             
-            GPIO.output(GPIOPin.CANBUS_IS_RUNNING, GPIO.HIGH)
+            GPIO.output(GPIOPin.CANBUS_IS_RUNNING.value, GPIO.HIGH)
             
             while not self._stop_.is_set():
                 packets_found = 0
@@ -127,6 +127,11 @@ class CANBus(KSRDaemon):
                 # TODO: Fix way message is read in to work with python-can 4.1.0
                 while packets_found < 7 and not self._stop_.is_set():
                     msg = self._canbus_intf.recv(self._RECV_TIMEOUT)
+                    if msg is None:
+                        print('msg was none')
+                        continue
+                    print(msg.arbitration_id)
+
                     if (msg.arbitration_id == self._MOTOR_DATA_ID1):
                         packets_found += 1
                         
@@ -144,7 +149,7 @@ class CANBus(KSRDaemon):
                         self._mph = 0.3048 * wheel_rpm * 0.10472
 
                         # Reset error codes.
-                        self._error_code_readout = ""
+                        self._error_code_readout = 'null'
 
                         # Error codes 1
                         error_code1 = bin(msg.data[6])[2:].zfill(8)
@@ -166,10 +171,14 @@ class CANBus(KSRDaemon):
 
                     elif (msg.arbitration_id == self._MOTOR_DATA_ID2):
                         packets_found += 1
-                        # TODO here:
                         # - Read Controller temperature (self._kelly_motor_temp)
+                        self._kelly_controller_temp = msg.data[1]-40
                         # - Read Motor temperature (self._kelly_controller_temp)
+                        self_kelly_motor_temp = msg.data[2]-30
+
+
                         # - Read forward switch & backward switch (msg[5])
+			# TODO: Forward Neutral Reverse Output
                         # - Verify forward and backward with status of command (msg[4])
 
                     elif (msg.arbitration_id == self._BATT_DATA_ID1):
@@ -201,8 +210,9 @@ class CANBus(KSRDaemon):
                         # TODO: This packet gives _solar_pcb_temp and _solar_mosfet_temp
                         # IMPLEMENTATION NEEDED
                         
-            GPIO.output(GPIOPin.CANBUS_IS_RUNNING, GPIO.LOW)
-        except Exception:
+            GPIO.output(GPIOPin.CANBUS_IS_RUNNING.value, GPIO.LOW)
+        except Exception as err:
+            print(err)
             event_handler.bind(Event_.CANBUS_INTR)
 
     @property

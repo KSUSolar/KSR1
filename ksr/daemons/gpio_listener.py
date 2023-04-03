@@ -38,24 +38,25 @@ class GPIOListener(KSRDaemon):
     
     def run(self):
         while not self._stop_.is_set():
-            if GPIO.input(GPIOPin.HAZ_INPUT) == 1:
+            if GPIO.input(GPIOPin.HAZ_INPUT.value) == 1:
                 if LightController.is_l_blinker_on() or LightController.is_r_blinker_on():
                     event_handler.bind(Event_.BLINKERS_OFF)
                 event_handler.bind_async(Event_.HAZ_ON)
             elif LightController.is_haz_on():
                 event_handler.bind(Event_.BLINKERS_OFF)
                 
-            if GPIO.input(GPIOPin.L_BLINKER_INPUT) == 1 and not LightController.haz_on:
+            if GPIO.input(GPIOPin.L_BLINKER_INPUT.value) == 1 and not LightController.haz_on:
                 event_handler.bind_asnyc(Event_.L_BLINKER_ON)
             elif LightController.is_l_blinker_on():
                 event_handler.bind(Event_.BLINKERS_OFF)
                 
-            if GPIO.input(GPIOPin.R_BLINKER_INPUT) == 1 and not LightController.haz_on:
+            if GPIO.input(GPIOPin.R_BLINKER_INPUT.value) == 1 and not LightController.haz_on:
                 event_handler.bind_async(Event_.R_BLINKER_ON)
             elif LightController.is_r_blinker_on():
                 event_handler.bind(Event_.BLINKERS_OFF)
                 
-            if GPIO.input(GPIOPin.SHUTDOWN) == 1:
+            if GPIO.input(GPIOPin.SHUTDOWN.value) == 1:
+                print('turnoff')
                 event_handler.bind_async(Event_.HARDWARE_SHUTDOWN)
                 
             self._stop_.wait(1 / 60)

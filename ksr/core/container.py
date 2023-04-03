@@ -59,7 +59,10 @@ class Container(metaclass = Singleton):
         
         print('Configuring GPIO')
         gpio_init.configure_gpio()
-        GPIO.output(GPIOPin.KSR_IS_RUNNING, GPIO.HIGH)
+        GPIO.output(GPIOPin.KSR_IS_RUNNING.value, GPIO.HIGH)
+        for gpio_pin in GPIOPin:
+            print(gpio_pin)
+            print(GPIO.input(gpio_pin.value))
     
         print('\tStarting daemons')
         for d in self._daemons:
@@ -68,8 +71,7 @@ class Container(metaclass = Singleton):
                 print('\t\t' + d.name + ' started')
         print('Done')
 
-        self._stop_.wait(10) # Dev.
-        event_handler.bind_async(Event_.KSR_SHUTDOWN)
+        self._stop_.wait()
         
     def stop(self):
         print('Exiting KSR')
@@ -83,6 +85,6 @@ class Container(metaclass = Singleton):
                 d.join()
                 print('\t\t' + d.name + ' stopped')
         
-        GPIO.output(GPIOPin.KSR_IS_RUNNING, GPIO.LOW)
+        GPIO.output(GPIOPin.KSR_IS_RUNNING.value, GPIO.LOW)
         print('Done')
         sys.exit(0)

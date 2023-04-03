@@ -33,7 +33,6 @@ from core.light_controller import LightController
 _event_executor = ThreadPoolExecutor(max_workers = 8)
 
 def bind(event: Event_):
-    
     from core.container import Container
     container = Container()
     
@@ -54,10 +53,10 @@ def bind(event: Event_):
     elif event == Event_.HARDWARE_SHUTDOWN:
         #gui = GUI(None)
         #gui.close()
-        return
+        bind(Event_.KSR_SHUTDOWN)
         
     elif event == Event_.CANBUS_INTR:
-        GPIO.output(GPIOPin.CANBUS_IS_RUNNING, GPIO.LOW)
+        GPIO.output(GPIOPin.CANBUS_IS_RUNNING.value, GPIO.LOW)
         print('Warning: CANBus daemon interrupt')
         # TODO: Add GUI canbus warning.
         return

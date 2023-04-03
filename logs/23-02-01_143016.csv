@@ -1,2 +1,0 @@
-Timestamp,Pi Temp,Gear,MPH,Kelly Motor Temp,Kelly Controller Temp,Errors,Batt Temp Avg,Batt Temp High,Batt Temp Low,Batt Temp High ID,Batt Temp Low ID,Batt Charge %,Batt Volts,Batt Amps,Aux Volts,BPS Fault,Solar PCB Temp,Solar MOSFET Temp,Solar Amps In,Solar Volts In,Solar Volts Out
-CANBus daemon interrupt
