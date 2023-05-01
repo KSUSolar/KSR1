@@ -7,7 +7,7 @@ __copyright__   = "Copyright 2022 Solar Vehicle Team at KSU"
 __credits__     = ["Aaron Harbin, Daniel Tebor"]
 
 __license__     = "GPL"
-__version__     = "1.0.6"
+__version__     = "1.0.7"
 __maintainer__  = "Aaron Harbin, Daniel Tebor"
 __email__       = "solarvehicleteam@kennesaw.edu"
 __status__      = "Development"
@@ -22,7 +22,7 @@ from threading import Event, Lock
 
 
 class LightController:
-    _stop = Event()
+    _should_stop = Event()
     _lock = Lock()
     _is_l_blinker_on = False
     _is_l_blinker_light_on = False
@@ -37,14 +37,14 @@ class LightController:
     def blink_left(cli):
         cli.is_l_blinker_on = True
         
-        while not cli._stop.is_set():
+        while not cli._should_stop.is_set():
             GPIO.output(GPIOPin.L_BLINKER_OUTPUT, GPIO.HIGH)
             cli._set_l_blinker(True)
-            cli._stop.wait(0.5)
+            cli._should_stop.wait(0.5)
 
             GPIO.output(GPIOPin.L_BLINKER_OUTPUT, GPIO.LOW)
             cli._set_l_blinker(False)
-            cli._stop.wait(0.5)
+            cli._should_stop.wait(0.5)
             
         cli.is_l_blinker_on = False
 
@@ -52,14 +52,14 @@ class LightController:
     def blink_right(cli):
         cli.is_r_blinker_on = True
         
-        while not cli._stop.is_set():
+        while not cli._should_stop.is_set():
             GPIO.output(GPIOPin.R_BLINKER_OUTPUT, GPIO.HIGH)
             cli._set_r_blinker(True)
-            cli._stop.wait(0.5)
+            cli._should_stop.wait(0.5)
 
             GPIO.output(GPIOPin.R_BLINKER_OUTPUT, GPIO.LOW)
             cli._set_r_blinker(False)
-            cli._stop.wait(0.5)
+            cli._should_stop.wait(0.5)
         
         cli.is_r_blinker_on = False
 
@@ -67,24 +67,24 @@ class LightController:
     def blink_haz(cli):
         cli.is_haz_on = True
         
-        while not cli._stop.is_set():
+        while not cli._should_stop.is_set():
             GPIO.output(GPIOPin.L_BLINKER_OUTPUT, GPIO.HIGH)
             GPIO.output(GPIOPin.R_BLINKER_OUTPUT, GPIO.HIGH)
             cli._set_l_blinker(True)
             cli._set_r_blinker(True)
-            cli._stop.wait(0.5)
+            cli._should_stop.wait(0.5)
 
             GPIO.output(GPIOPin.L_BLINKER_OUTPUT, GPIO.LOW)
             GPIO.output(GPIOPin.R_BLINKER_OUTPUT, GPIO.LOW)
             cli._set_l_blinker(False)
             cli._set_r_blinker(False)
-            cli._stop.wait(0.5)
+            cli._should_stop.wait(0.5)
         
         cli.is_haz_on = False
         
     @classmethod
     def stop_blinkers(cli):
-        cli._stop.set()
+        cli._should_stop.set()
         
     @classmethod
     def is_l_blinker_on(cli):

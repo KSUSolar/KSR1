@@ -7,7 +7,7 @@ __copyright__   = "Copyright 2022 Solar Vehicle Team at KSU"
 __credits__     = ["Aaron Harbin, Daniel Tebor"]
 
 __license__     = "GPL"
-__version__     = "1.0.6"
+__version__     = "1.0.7"
 __maintainer__  = "Aaron Harbin, Daniel Tebor"
 __email__       = "solarvehicleteam@kennesaw.edu"
 __status__      = "Development"
@@ -23,15 +23,15 @@ class KSRDaemon(Thread, metaclass = Singleton):
         return object.__new__(cls)
     
     def __init__(self, name: str):
-        Thread.__init__(self, name = name, daemon = True)
+        Thread.__init__(self, name=name, daemon=True)
         self._is_disabled = False
-        self._stop_ = Event()
+        self._should_stop = Event()
         
     def run(self):
         raise NotImplementedError('Subclasses of KSRDaemon must implement run()') 
     
     def stop(self):
-        self._stop_.set()
+        self._should_stop.set()
         
     def disable(self):
         self._is_disabled = True

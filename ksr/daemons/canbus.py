@@ -7,7 +7,7 @@ __copyright__   = "Copyright 2022 Solar Vehicle Team at KSU"
 __credits__     = ["Aaron Harbin, Daniel Tebor"]
 
 __license__     = "GPL"
-__version__     = "1.0.6"
+__version__     = "1.0.7"
 __maintainer__  = "Aaron Harbin, Daniel Tebor"
 __email__       = "solarvehicleteam@kennesaw.edu"
 __status__      = "Development"
@@ -121,11 +121,11 @@ class CANBus(KSRDaemon):
             
             GPIO.output(GPIOPin.CANBUS_IS_RUNNING.value, GPIO.HIGH)
             
-            while not self._stop_.is_set():
+            while not self._should_stop.is_set():
                 packets_found = 0
                 
                 # TODO: Fix way message is read in to work with python-can 4.1.0
-                while packets_found < 7 and not self._stop_.is_set():
+                while packets_found < 7 and not self._should_stop.is_set():
                     msg = self._canbus_intf.recv(self._RECV_TIMEOUT)
                     if msg is None:
                         print('msg was none')

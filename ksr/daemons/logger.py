@@ -7,7 +7,7 @@ __copyright__   = "Copyright 2022 Solar Vehicle Team at KSU"
 __credits__     = ["Aaron Harbin, Daniel Tebor"]
 
 __license__     = "GPL"
-__version__     = "1.0.6"
+__version__     = "1.0.7"
 __maintainer__  = "Aaron Harbin, Daniel Tebor"
 __email__       = "solarvehicleteam@kennesaw.edu"
 __status__      = "Development"
@@ -69,23 +69,23 @@ class Logger(KSRDaemon):
 
         # Write new line to csv every second. Save csv ~ every SAVE_INTRV_MINS mins.
         # Save and break loop if CANBus deamon is interrupted.
-        while not self._stop_.is_set():
+        while not self._should_stop.is_set():
             num_seconds = 1
 
             with open(log_dir, 'a') as log:
                 writer = csv.writer(log)
                 
-                while num_seconds < self._SAVE_INTRV_MINS * 60 and not self._stop_.is_set():
+                while num_seconds < self._SAVE_INTRV_MINS * 60 and not self._should_stop.is_set():
                     if not self._canbus.is_alive():
                         writer.writerow([self._canbus.name + ' daemon interrupt'])
-                        self._stop_.set()
+                        self._should_stop.set()
                         break
                     
                     writer.writerow([pi.current_time_hms(), pi.temp()]
                         + list(self._canbus.data.values()))
                     
                     num_seconds += 1
-                    self._stop_.wait(1)
+                    self._should_stop.wait(1)
                     
                 log.close()
                 

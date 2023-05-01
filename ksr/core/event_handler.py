@@ -7,7 +7,7 @@ __copyright__   = "Copyright 2022 Solar Vehicle Team at KSU"
 __credits__     = ["Aaron Harbin, Daniel Tebor"]
 
 __license__     = "GPL"
-__version__     = "1.0.6"
+__version__     = "1.0.7"
 __maintainer__  = "Aaron Harbin, Daniel Tebor"
 __email__       = "solarvehicleteam@kennesaw.edu"
 __status__      = "Development"
@@ -25,7 +25,6 @@ except RuntimeError:
 
 from common.event import Event_
 from common.gpio_pin import GPIOPin
-from core.gui_dep import GUI
 from concurrent.futures import ThreadPoolExecutor
 
 from core.light_controller import LightController

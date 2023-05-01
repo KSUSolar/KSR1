@@ -7,7 +7,7 @@ __copyright__   = "Copyright 2022 Solar Vehicle Team at KSU"
 __credits__     = ["Aaron Harbin, Daniel Tebor"]
 
 __license__     = "GPL"
-__version__     = "1.0.6"
+__version__     = "1.0.7"
 __maintainer__  = "Aaron Harbin, Daniel Tebor"
 __email__       = "solarvehicleteam@kennesaw.edu"
 __status__      = "Development"
@@ -28,25 +28,30 @@ except RuntimeError:
 from common.event import Event_
 from common.gpio_pin import GPIOPin
 from common.singleton import Singleton
-from core import event_handler
 from core import gpio_init
-#from core.gui import GUI
+from core.gui import GUI
 from daemons.gpio_listener import GPIOListener
 from daemons.canbus import CANBus
 from daemons.logger import Logger
-#from PyQt5.QtWidgets import QApplication
 from threading import Event
 
 
 class Container(metaclass = Singleton):
-    def __init__(self):
-        self._stop_ = Event()
-        #self._app = QApplication(sys.argv)
+    def __init__(self, should_stop_with_gui: bool = False):
+        print('Initializing KSR')
+        
+        self._should_stop_with_gui = should_stop_with_gui
+        self._should_stop = Event()
+        
+        print('Initializing GPIO')
+        gpio_init.configure_gpio()
+        GPIO.output(GPIOPin.KSR_IS_RUNNING.value, GPIO.HIGH)
+        
+        print('Initializing Daemons')
         
         self.canbus = CANBus()
         self.logger = Logger()
         self.event_listener = GPIOListener()
-        #self.gui = GUI(self.canbus)
 
         self._daemons = [
             self.event_listener,
@@ -54,37 +59,41 @@ class Container(metaclass = Singleton):
             self.logger
         ]
         
-    def start(self):
-        print('Booting up KSR')
+        print('Initializing GUI')
+        self._gui = GUI()
         
-        print('Configuring GPIO')
-        gpio_init.configure_gpio()
-        GPIO.output(GPIOPin.KSR_IS_RUNNING.value, GPIO.HIGH)
-        for gpio_pin in GPIOPin:
-            print(gpio_pin)
-            print(GPIO.input(gpio_pin.value))
+        print('KSR initialized')
+        
+    def start(self):
+        print('Starting KSR')
     
-        print('\tStarting daemons')
+        print('Starting daemons')
         for d in self._daemons:
             if not d.is_disabled:
                 d.start()
-                print('\t\t' + d.name + ' started')
-        print('Done')
+                print(d.name + ' started')
+            else:
+                print(d.name + ' did not start (disabled)')
 
-        self._stop_.wait()
+        print('Starting GUI')
+        self._gui.start()
+        if self._should_stop_with_gui:
+            self.stop()
+        else:
+            self._should_stop.wait()
         
     def stop(self):
         print('Exiting KSR')
         
-        self._stop_.set()
+        self._should_stop.set()
+        self._gui.stop()
         
-        print('\tStopping daemons')
+        print('Stopping daemons')
         for d in reversed(self._daemons):
             if d.is_alive():
                 d.stop()
                 d.join()
-                print('\t\t' + d.name + ' stopped')
+                print(d.name + ' stopped')
         
         GPIO.output(GPIOPin.KSR_IS_RUNNING.value, GPIO.LOW)
-        print('Done')
         sys.exit(0)
